@@ -14,10 +14,20 @@ const Login = () => {
     const handleSubmit = (e) => {
       e.preventDefault(); // Ngăn hành vi mặc định của form
     
-      // Giả lập gửi dữ liệu thành công
-      alert("Đăng nhập thành công!");
-      navigate("/home"); // Điều hướng trang
+      // Xác định nút đã được nhấn
+      const submitter = e.nativeEvent.submitter;
+    
+      if (submitter.name === "normalLogin") {
+        // Xử lý đăng nhập thông thường
+        alert("Đăng nhập thành công!");
+        navigate("/home"); // Điều hướng đến trang home
+      } else if (submitter.name === "sellerLogin") {
+        // Xử lý đăng nhập làm người bán
+        alert("Đăng nhập với tư cách người bán thành công!");
+        navigate("/shop-overview"); // Điều hướng đến trang home của người bán (có thể thay đổi đường dẫn tùy ý)
+      }
     };
+    
 
   return (
     <div className=" bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -98,12 +108,12 @@ const Login = () => {
             </div>
 
             <div>
-                <button type="submit" className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600">
+                <button type="submit" name="normalLogin" className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600">
                     Đăng nhập
                 </button>
             </div>
             <div>
-                <button type="submit" className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-300">
+                <button type="submit" name="sellerLogin" className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-300">
                     Đăng nhập với tư cách người bán
                 </button>
             </div>
