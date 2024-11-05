@@ -138,6 +138,21 @@ const AddProductPopup = ({ onClose }) => {
             />
           </div>
 
+            {/* Mô tả */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium">
+              Mô tả <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="description"
+              value={description}
+              placeholder="Mô tả ngắn về sản phẩm của bạn"
+              onChange={(e) => setDescription(e.target.value)}
+              className="w-full border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+
           <button
             type="submit"
             className="bg-blue-500 text-white px-4 py-2 rounded"
