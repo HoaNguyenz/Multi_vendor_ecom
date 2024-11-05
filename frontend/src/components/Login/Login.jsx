@@ -24,7 +24,7 @@ const Login = () => {
       } else if (submitter.name === "sellerLogin") {
         // Xử lý đăng nhập làm người bán
         alert("Đăng nhập với tư cách người bán thành công!");
-        navigate("/shop-overview"); // Điều hướng đến trang home của người bán (có thể thay đổi đường dẫn tùy ý)
+        navigate("/shop-dashboard"); // Điều hướng đến trang home của người bán (có thể thay đổi đường dẫn tùy ý)
       }
     };
     
