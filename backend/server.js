@@ -31,30 +31,28 @@ const sendVerificationEmail = async (email, verificationCode) => {
 
 // Route: Sign Up
 app.post('/signup', async (req, res) => {
-    const { sdt, email, mat_khau, ho_va_ten_dem, ten, gioi_tinh, ngay_sinh, la_nguoi_ban, dia_chi } = req.body;
+    const { username, sdt, email, mat_khau, xac_nhan_mat_khau} = req.body;
+
+    // Kiểm tra mật khẩu có khớp hay không
+    if (mat_khau !== xac_nhan_mat_khau) {
+        return res.status(400).json({ message: 'Mật khẩu và xác nhận mật khẩu không khớp.' });
+    }
 
     const hashedPassword = await bcrypt.hash(mat_khau, 10);
     const verificationCode = Math.floor(100000 + Math.random() * 900000); // Tạo mã xác minh 6 chữ số
 
     try {
         // Kiểm tra xem người dùng đã tồn tại chưa
-        const existingUser = await sql.query`SELECT * FROM Nguoi_dung_va_Gio_hang WHERE Sdt = ${sdt} OR Email = ${email}`;
+        const existingUser = await sql.query`SELECT * FROM Nguoi_dung WHERE Sdt = ${sdt} OR Email = ${email}`;
         if (existingUser.recordset.length > 0) {
             return res.status(400).json({ message: 'Số điện thoại hoặc email này đã được đăng ký.' });
         }
         
-        // Insert user data
+        // Thêm dữ liệu người dùng vào bảng Nguoi_dung
         await sql.query`
-            INSERT INTO Nguoi_dung_va_Gio_hang (Sdt, Email, Mat_khau, Ho_va_ten_dem, Ten, Gioi_tinh, Ngay_sinh, La_nguoi_ban, verificationCode)
-            VALUES (${sdt}, ${email}, ${hashedPassword}, ${ho_va_ten_dem}, ${ten}, ${gioi_tinh}, ${ngay_sinh}, ${la_nguoi_ban}, ${verificationCode})
+            INSERT INTO Nguoi_dung (Sdt, Email, Mat_khau, Username, verificationCode)
+            VALUES (${sdt}, ${email}, ${hashedPassword}, ${username}, ${verificationCode})
         `;
-
-        if (dia_chi) {
-            await sql.query`
-                INSERT INTO Dia_chi_nguoi_dung (Sdt, So_nha, Phuong_or_Xa, Quan_or_Huyen, Tinh_or_TP)
-                VALUES (${sdt}, ${dia_chi.so_nha}, ${dia_chi.phuong_or_xa}, ${dia_chi.quan_or_huyen}, ${dia_chi.tinh_or_tp})
-            `;
-        }
 
         // Gửi mã xác minh qua email
         await sendVerificationEmail(email, verificationCode);
@@ -73,7 +71,7 @@ app.post('/verify', async (req, res) => {
     try {
         // Tìm người dùng dựa trên email và kiểm tra mã xác minh
         const result = await sql.query`
-            SELECT * FROM Nguoi_dung_va_Gio_hang
+            SELECT * FROM Nguoi_dung
             WHERE Email = ${email} AND verificationCode = ${code}
         `;
 
@@ -85,7 +83,7 @@ app.post('/verify', async (req, res) => {
 
         // Cập nhật trạng thái đã xác minh
         await sql.query`
-            UPDATE Nguoi_dung_va_Gio_hang 
+            UPDATE Nguoi_dung 
             SET isVerified = 1, verificationCode = NULL 
             WHERE Email = ${email}
         `;
@@ -102,7 +100,7 @@ app.post('/signin', async (req, res) => {
     const { email, mat_khau } = req.body;
 
     try {
-        const result = await sql.query`SELECT * FROM Nguoi_dung_va_Gio_hang WHERE Email = ${email}`;
+        const result = await sql.query`SELECT * FROM Nguoi_dung WHERE Email = ${email}`;
         const user = result.recordset[0];
 
         if (!user) {
@@ -128,7 +126,7 @@ app.post('/forgot-password', async (req, res) => {
 
     try {
         // Kiểm tra xem email có tồn tại trong cơ sở dữ liệu không
-        const user = await sql.query`SELECT * FROM Nguoi_dung_va_Gio_hang WHERE Email = ${email}`;
+        const user = await sql.query`SELECT * FROM Nguoi_dung WHERE Email = ${email}`;
         
         if (user.recordset.length === 0) {
             return res.status(404).json({ message: 'Email không tồn tại.' });
@@ -138,7 +136,7 @@ app.post('/forgot-password', async (req, res) => {
         const verificationCode = Math.floor(100000 + Math.random() * 900000);
         
         // Cập nhật mã xác minh trong cơ sở dữ liệu
-        await sql.query`UPDATE Nguoi_dung_va_Gio_hang SET verificationCode = ${verificationCode} WHERE Email = ${email}`;
+        await sql.query`UPDATE Nguoi_dung SET verificationCode = ${verificationCode} WHERE Email = ${email}`;
         
         // Gửi email chứa mã xác minh
         await sendVerificationEmail(email, verificationCode);
@@ -156,7 +154,7 @@ app.post('/reset-password', async (req, res) => {
 
     try {
         // Tìm người dùng bằng mã xác minh
-        const user = await sql.query`SELECT * FROM Nguoi_dung_va_Gio_hang WHERE verificationCode = ${verificationCode}`;
+        const user = await sql.query`SELECT * FROM Nguoi_dung WHERE verificationCode = ${verificationCode}`;
         
         if (user.recordset.length === 0) {
             return res.status(400).json({ message: 'Mã xác minh không hợp lệ.' });
@@ -166,7 +164,7 @@ app.post('/reset-password', async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         // Cập nhật mật khẩu mới trong cơ sở dữ liệu và xóa mã xác minh
-        await sql.query`UPDATE Nguoi_dung_va_Gio_hang SET Mat_khau = ${hashedPassword}, verificationCode = NULL WHERE verificationCode = ${verificationCode}`;
+        await sql.query`UPDATE Nguoi_dung SET Mat_khau = ${hashedPassword}, verificationCode = NULL WHERE verificationCode = ${verificationCode}`;
         
         res.status(200).json({ message: 'Mật khẩu đã được cập nhật thành công.' });
     } catch (error) {
@@ -177,26 +175,15 @@ app.post('/reset-password', async (req, res) => {
 
 // Route: Update User Information
 app.put('/update-user', async (req, res) => {
-    const { sdt, email, ho_va_ten_dem, ten, gioi_tinh, ngay_sinh, dia_chi } = req.body;
+    const { sdt, email, username} = req.body;
 
     try {
-        // Cập nhật thông tin người dùng trong bảng Nguoi_dung_va_Gio_hang
+        // Cập nhật thông tin người dùng trong bảng Nguoi_dung
         await sql.query`
-            UPDATE Nguoi_dung_va_Gio_hang 
-            SET Email = ${email}, Ho_va_ten_dem = ${ho_va_ten_dem}, Ten = ${ten}, 
-                Gioi_tinh = ${gioi_tinh}, Ngay_sinh = ${ngay_sinh}
+            UPDATE Nguoi_dung 
+            SET Email = ${email}, Username = ${username}
             WHERE Sdt = ${sdt}
         `;
-
-        // Cập nhật địa chỉ người dùng nếu có
-        if (dia_chi) {
-            await sql.query`
-                UPDATE Dia_chi_nguoi_dung 
-                SET So_nha = ${dia_chi.so_nha}, Phuong_or_Xa = ${dia_chi.phuong_or_xa}, 
-                    Quan_or_Huyen = ${dia_chi.quan_or_huyen}, Tinh_or_TP = ${dia_chi.tinh_or_tp}
-                WHERE Sdt = ${sdt}
-            `;
-        }
 
         res.status(200).json({ message: 'Thông tin người dùng đã được cập nhật thành công.' });
     } catch (error) {
@@ -205,6 +192,10 @@ app.put('/update-user', async (req, res) => {
     }
 });
 
+// Route: Logout
+app.post('/logout', (req, res) => {
+    res.status(200).json({ message: 'Đăng xuất thành công.' });
+});
 
 // Start the server
 const PORT = process.env.PORT || 5000;
