@@ -3,6 +3,7 @@ import {AiOutlineEye, AiOutlineEyeInvisible} from "react-icons/ai"
 import styles from '../../styles/styles'
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
     const [email, setEmail] = useState("")
@@ -11,20 +12,35 @@ const Login = () => {
     const navigate = useNavigate();
 
 
-    const handleSubmit = (e) => {
-      e.preventDefault(); // Ngăn hành vi mặc định của form
-    
-      // Xác định nút đã được nhấn
+    const handleSubmit = async (e) => {
+      e.preventDefault(); // Prevent form from submitting the default way
+  
+      // Check which submit button was pressed
       const submitter = e.nativeEvent.submitter;
-    
-      if (submitter.name === "normalLogin") {
-        // Xử lý đăng nhập thông thường
-        alert("Đăng nhập thành công!");
-        navigate("/home"); // Điều hướng đến trang home
-      } else if (submitter.name === "sellerLogin") {
-        // Xử lý đăng nhập làm người bán
-        alert("Đăng nhập với tư cách người bán thành công!");
-        navigate("/shop-dashboard"); // Điều hướng đến trang home của người bán (có thể thay đổi đường dẫn tùy ý)
+  
+      if (submitter.name === "normalLogin" || submitter.name === "sellerLogin") {
+        try {
+          // Prepare the login data
+          const data = { email, mat_khau: password };
+  
+          // Send login request to backend
+          const response = await axios.post("http://localhost:5000/login", data);
+  
+          // If login is successful, handle response and navigate
+          if (response.status === 200) {
+            alert(response.data.message); // Display success message
+  
+            // After login, navigate to different pages based on user type
+            if (submitter.name === "normalLogin") {
+              navigate("/home"); // Regular user
+            } else {
+              navigate("/shop-dashboard"); // Seller user
+            }
+          }
+        } catch (error) {
+          console.error(error);
+          alert("Đăng nhập thất bại. Vui lòng thử lại.");
+        }
       }
     };
     
@@ -40,6 +56,7 @@ const Login = () => {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Email */}
             <div>
               <label
                 htmlFor="email"
@@ -59,7 +76,7 @@ const Login = () => {
                 />
               </div>
             </div>
-
+            {/* Mật khẩu */}
             <div>
               <label
                 htmlFor="password"
@@ -100,10 +117,9 @@ const Login = () => {
                     </label>
                 </div>
                 <div className="text-sm">
-                    <a href=".forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+                    <a href="forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
                         Quên mật khẩu?
                     </a>
-
                 </div>
             </div>
 

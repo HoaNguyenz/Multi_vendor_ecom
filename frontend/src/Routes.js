@@ -5,6 +5,9 @@ import ShopDashboardPage from "../src/pages/ShopDashboardPage"
 import ShopOrdersPage from "../src/pages/ShopOrdersPage"
 import ShopProductsPage from "../src/pages/ShopProductsPage"
 import ShopInfoPage from "../src/pages/ShopInfoPage"
+import VerifyPage from "../src/pages/VerifyPage"
+import ForgotPasswordPage from "../src/pages/ForgotPasswordPage"
+import ResetPasswordPage from "../src/pages/ResetPasswordPage"
 
 
 export{
@@ -15,4 +18,7 @@ export{
     ShopOrdersPage,
     ShopProductsPage,
     ShopInfoPage,
+    VerifyPage,
+    ForgotPasswordPage,
+    ResetPasswordPage
 };

@@ -4,11 +4,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { connectDB, sql } = require('./db');
+const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-
+app.use(cors());
 connectDB();
 
 // Setup Nodemailer
@@ -30,8 +31,8 @@ const sendVerificationEmail = async (email, verificationCode) => {
 };
 
 // Route: Sign Up
-app.post('/signup', async (req, res) => {
-    const { username, sdt, email, mat_khau, xac_nhan_mat_khau} = req.body;
+app.post('/sign-up', async (req, res) => {
+    const { username, email, sdt, mat_khau, xac_nhan_mat_khau} = req.body;
 
     // Kiểm tra mật khẩu có khớp hay không
     if (mat_khau !== xac_nhan_mat_khau) {
@@ -95,8 +96,8 @@ app.post('/verify', async (req, res) => {
 });
 
 
-// Route: Sign In
-app.post('/signin', async (req, res) => {
+// Route: Login
+app.post('/login', async (req, res) => {
     const { email, mat_khau } = req.body;
 
     try {

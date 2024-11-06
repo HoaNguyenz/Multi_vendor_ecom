@@ -3,6 +3,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import styles from "../../styles/styles";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Signup = () => {
   const [email, setEmail] = useState("");
@@ -14,16 +15,36 @@ const Signup = () => {
   const [confirmVisible, setConfirmVisible] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault(); // Ngăn hành vi mặc định của form
     if (password !== confirmPassword) {
       alert("Mật khẩu và xác nhận mật khẩu không khớp.");
       return;
     }
 
-    // Giả lập gửi dữ liệu thành công
-    alert("Đăng nhập thành công!");
-    navigate("/home"); // Điều hướng trang
+    try {
+      // Gửi yêu cầu đăng ký đến backend
+      const response = await axios.post("http://localhost:5000/sign-up", {
+        username,
+        email,
+        sdt: phone,
+        mat_khau: password,
+        xac_nhan_mat_khau: confirmPassword
+      });
+
+      if (response.status === 201) {
+        alert("Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.");
+        navigate("/verify"); // Chuyển hướng sang trang xác minh tài khoản
+      }
+    } catch (error) {
+      if (error.response && error.response.data) {
+        // Nếu có lỗi từ server, hiển thị thông báo lỗi
+        alert(error.response.data.message || "Đăng ký không thành công.");
+      } else {
+        // Xử lý lỗi mạng hoặc lỗi khác
+        alert("Lỗi kết nối. Vui lòng thử lại.");
+      }
+    }
   
   };
   return (

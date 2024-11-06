@@ -10,7 +10,7 @@ const config = {
     options: {
         encrypt: true, // Bật mã hóa
         trustServerCertificate: true, // Bỏ qua xác thực chứng chỉ
-    }
+    },
 };
 
 const connectDB = async () => {
