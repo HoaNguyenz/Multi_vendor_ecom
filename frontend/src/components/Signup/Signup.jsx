@@ -11,12 +11,20 @@ const Signup = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const [visible, setVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Ngăn hành vi mặc định của form
+    setPasswordError("");
+
+    if (password.length < 6) {
+      setPasswordError("Mật khẩu phải có ít nhất 6 ký tự.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       alert("Mật khẩu và xác nhận mật khẩu không khớp.");
       return;
@@ -149,6 +157,9 @@ const Signup = () => {
                   ></AiOutlineEyeInvisible>
                 )}
               </div>
+              {passwordError && (
+                <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+              )}
             </div>
 
             <div>
