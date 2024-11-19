@@ -30,6 +30,24 @@ const sendVerificationEmail = async (email, verificationCode) => {
     });
 };
 
+// Blacklist to store invalidated JWTs
+const jwtBlacklist = new Set();
+
+// Middleware to verify token
+const verifyToken = (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies.token;
+    if (!token || jwtBlacklist.has(token)) {
+        return res.status(401).json({ message: 'Bạn cần đăng nhập để thực hiện chức năng này.' });
+    }
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        return res.status(401).json({ message: 'Token không hợp lệ hoặc đã hết hạn.' });
+    }
+};
+
 // Route: Sign Up
 app.post('/sign-up', async (req, res) => {
     const { username, email, sdt, mat_khau, xac_nhan_mat_khau} = req.body;
@@ -114,8 +132,14 @@ app.post('/login', async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: 'Sai mật khẩu.' });
         }
-        const token = jwt.sign({ id: user.Sdt }, process.env.JWT_SECRET);
-        res.json({ message: 'Đăng nhập thành công.', token });
+        const token = jwt.sign({ id: user.Sdt }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000 // Cookie expires in 1 day
+        });
+        res.status(200).json({ message: 'Đăng nhập thành công.', token });
     } catch (error) {
         res.status(500).json({ message: 'Đăng nhập thất bại.', error });
     }
@@ -194,9 +218,82 @@ app.put('/update-user', async (req, res) => {
 });
 
 // Route: Logout
+
 app.post('/logout', (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1]; // Lấy token từ header
+    if (token) {
+        jwtBlacklist.add(token); // Thêm token vào danh sách đen
+    }
+
+    res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'strict' });
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
     res.status(200).json({ message: 'Đăng xuất thành công.' });
 });
+
+// Route: Search Products
+app.get('/search-products', verifyToken, async (req, res) => {
+    const { keyword, filters } = req.query;
+
+    try {
+        // Kiểm tra nếu không có từ khóa tìm kiếm, yêu cầu phải có keyword
+        if (!keyword) {
+            return res.status(400).json({ message: 'Bạn phải cung cấp từ khóa tìm kiếm.' });
+        }
+
+        // Câu truy vấn cơ sở dữ liệu để tìm kiếm sản phẩm
+        let query = `SELECT * FROM San_pham WHERE Ten_san_pham LIKE '%${keyword}%'`;
+
+        // Thêm điều kiện lọc nếu có
+        if (filters) {
+            const { brand, priceRange, seller } = JSON.parse(filters);
+            if (brand) query += ` AND Thuong_hieu = '${brand}'`;
+            if (priceRange) query += ` AND Gia BETWEEN ${priceRange.min} AND ${priceRange.max}`;
+            if (seller) query += ` AND Nguoi_ban = '${seller}'`;
+        }
+
+        // Truy vấn cơ sở dữ liệu
+        const products = await sql.query(query);
+
+        // Không có sản phẩm phù hợp
+        if (products.recordset.length === 0) {
+            return res.status(404).json({ message: 'Không có sản phẩm nào phù hợp với yêu cầu tìm kiếm của bạn.' });
+        }
+
+        // Hiển thị kết quả
+        res.status(200).json({ products: products.recordset });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi hệ thống khi tìm kiếm sản phẩm.', error });
+    }
+});
+
+// Route: View Product Information
+app.get('/product/:id', verifyToken, async (req, res) => {
+    const productId = req.params.id;
+
+    try {
+        // Truy vấn cơ sở dữ liệu để lấy thông tin sản phẩm theo ID
+        const result = await sql.query`
+            SELECT * FROM San_pham WHERE Id_san_pham = ${productId}
+        `;
+
+        const product = result.recordset[0];
+
+        // Kiểm tra xem sản phẩm có tồn tại không
+        if (!product) {
+            return res.status(404).json({ message: 'Sản phẩm không tìm thấy.' });
+        }
+
+        // Trả về thông tin sản phẩm
+        res.status(200).json({ product });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Lỗi khi lấy thông tin sản phẩm.', error });
+    }
+});
+
 
 // Start the server
 const PORT = process.env.PORT || 5000;
