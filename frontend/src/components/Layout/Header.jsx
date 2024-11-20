@@ -8,10 +8,12 @@ import {
 import { BiMenuAltLeft } from 'react-icons/bi'
 import { IoIosArrowDown } from 'react-icons/io'
 import { CgProfile } from "react-icons/cg";
+import useLogout from "../../hooks/useLogout"; 
 
 const Header = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [profileMenu, setProfileMenu] = useState(false);
+  const { logout } = useLogout();
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -24,6 +26,7 @@ const Header = () => {
         <Link to="/">LOGO</Link>
       </div>
 
+      {/* Category */}
       <div>
         <button className="h-[40px] w-[250px] flex items-center justify-between px-4 bg-white text-lg font-[400] select-none rounded-md">
           <div className="flex items-center">
@@ -57,36 +60,33 @@ const Header = () => {
           <AiOutlineShoppingCart size={28} className="cursor-pointer" />{" "}
           {/* Tăng kích thước lên 28 */}
         </Link>
-        <div className="relative">
-          <button
-            onClick={() => setProfileMenu(!profileMenu)}
-            className="focus:outline-none"
-          >
-            <CgProfile size={28} className="cursor-pointer" />{" "}
-            {/* Tăng kích thước lên 28 */}
-          </button>
+         {/* Biểu tượng Profile */}
+      <div className="relative">
+        <button
+          onClick={() => setProfileMenu(!profileMenu)}
+          className="focus:outline-none"
+        >
+          <CgProfile size={28} className="cursor-pointer" />
+        </button>
 
-          {/* Menu profile */}
-          {profileMenu && (
-            <div className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden">
-              <Link
-                to="/profile"
-                className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Hồ sơ cá nhân
-              </Link>
-              <button
-                onClick={() => {
-                  localStorage.removeItem("token"); // Ví dụ xóa token trong localStorage
-                  window.location.href = "/login"; // về trang đăng nhập
-                }}
-                className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Đăng xuất
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Menu profile */}
+        {profileMenu && (
+          <div className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden">
+            <Link
+              to="/profile"
+              className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Hồ sơ cá nhân
+            </Link>
+            <button
+              onClick={logout} // Gọi hàm logout từ hook
+              className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Đăng xuất
+            </button>
+          </div>
+        )}
+      </div>
       </div>
     </div>
   );
