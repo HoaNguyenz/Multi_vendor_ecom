@@ -1,12 +1,14 @@
-import React from 'react'
-import Header from "../components/Layout/Header.jsx"
+import React from 'react';
+import Header from '../components/Layout/Header.jsx';
+import BestSellerProducts from '../components/Home/BestSellerProducts.jsx';
 
 const HomePage = () => {
   return (
     <div>
-      <Header></Header>
+      <Header />
+      <BestSellerProducts />
     </div>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;

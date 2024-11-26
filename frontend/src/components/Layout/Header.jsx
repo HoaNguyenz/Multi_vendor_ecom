@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { AiOutlineSearch, AiOutlineShoppingCart } from "react-icons/ai";
 import { BiMenuAltLeft } from "react-icons/bi";
@@ -10,6 +10,9 @@ import useLogout from "../../hooks/useLogout";
 const Header = () => {
   const { user, loading } = useAuth(); // Lấy trạng thái loading từ context
   const [profileMenu, setProfileMenu] = useState(false);
+  const [categoryMenu, setCategoryMenu] = useState(false);
+  const [showCart, setShowCart] = useState(false); // Trạng thái giỏ hàng
+  const profileMenuRef = useRef(null);
   const { logout } = useLogout();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -21,10 +24,14 @@ const Header = () => {
     setSearchTerm(e.target.value);
   };
 
+  const handleSearch = () => {
+    console.log("Tìm kiếm:", searchTerm); // Tích hợp tìm kiếm sản phẩm quần áo
+  };
+
   return (
-    <div className="w-full bg-blue-400 h-[60px] flex items-center justify-between px-4">
+    <div className="w-full bg-blue-500 h-[60px] flex items-center justify-between px-4 md:px-8">
       {/* Logo */}
-      <div className="text-white font-bold text-2xl">
+      <div className="text-white font-bold text-xl md:text-2xl">
         <Link to="/">LOGO</Link>
       </div>
 
@@ -37,19 +44,35 @@ const Header = () => {
           </div>
           <IoIosArrowDown size={20} className="ml-2" />
         </button>
+
+        {/* Dropdown danh mục */}
+        {categoryMenu && (
+          <div className="absolute bg-white shadow-md rounded-md mt-2 w-[250px] z-50">
+            {categories.map((category, idx) => (
+              <Link
+                to={`/category/${category.toLowerCase().replace(" ", "-")}`}
+                key={idx}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                {category}
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Thanh tìm kiếm */}
-      <div className="relative w-[50%] max-w-[600px]">
+      <div className="relative w-[70%] max-w-[600px] hidden md:block">
         <input
           type="text"
-          placeholder="Bạn muốn tìm gì..."
+          placeholder="Tìm sản phẩm bạn muốn..."
           value={searchTerm}
           onChange={handleSearchChange}
           className="w-full h-[6vh] px-4 pr-10 rounded-full border-none focus:outline-none shadow-sm"
         />
         <AiOutlineSearch
           size={20}
+          onClick={handleSearch}
           className="absolute right-3 top-2.5 text-gray-500 cursor-pointer"
         />
       </div>
