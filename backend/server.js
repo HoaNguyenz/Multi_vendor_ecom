@@ -1,5 +1,6 @@
 // server.js
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -9,7 +10,11 @@ require('dotenv').config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({
+    origin: 'http://localhost:3000', // Địa chỉ frontend
+    credentials: true,              // Cho phép gửi cookie và thông tin xác thực
+}));
 connectDB();
 
 // Setup Nodemailer
@@ -113,7 +118,6 @@ app.post('/verify', async (req, res) => {
     }
 });
 
-
 // Route: Login
 app.post('/login', async (req, res) => {
     const { email, mat_khau } = req.body;
@@ -135,13 +139,45 @@ app.post('/login', async (req, res) => {
         const token = jwt.sign({ id: user.Sdt }, process.env.JWT_SECRET, { expiresIn: '1d' });
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true,
+            // secure: true,
             sameSite: 'strict',
             maxAge: 24 * 60 * 60 * 1000 // Cookie expires in 1 day
         });
-        res.status(200).json({ message: 'Đăng nhập thành công.', token });
+        res.status(200).json({ message: 'Đăng nhập thành công.', token, username: user.Username });
     } catch (error) {
         res.status(500).json({ message: 'Đăng nhập thất bại.', error });
+    }
+});
+
+// Route: Authenticate
+app.get('/authenticate', async (req, res) => {
+    const token = req.cookies.token;
+
+    if (!token) {
+        return res.status(401).json({ message: 'Bạn chưa đăng nhập.' });
+    }
+
+    try {
+        // Xác thực token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Truy vấn người dùng dựa trên thông tin từ token
+        const result = await sql.query`SELECT * FROM Nguoi_dung WHERE Sdt = ${decoded.id}`;
+        const user = result.recordset[0];
+
+        // Kiểm tra người dùng có tồn tại và còn hoạt động không
+        if (!user || !user.isActive) {
+            return res.status(404).json({ message: 'Người dùng không tồn tại hoặc đã bị vô hiệu hóa.' });
+        }
+
+        // Trả về thông tin người dùng cần thiết
+        res.status(200).json({
+            username: user.Username,
+            email: user.Email,
+        });
+    } catch (error) {
+        // Lỗi token hết hạn hoặc không hợp lệ
+        return res.status(401).json({ message: 'Phiên đăng nhập không hợp lệ.', error: error.message });
     }
 });
 

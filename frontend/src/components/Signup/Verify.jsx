@@ -15,22 +15,22 @@ const Verify = () => {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:5000/verify", {
-        email,
-        code: verificationCode,
-      });
+        const response = await axios.post(
+            "http://localhost:5000/verify",
+            { email, code: verificationCode },
+        );
 
-      if (response.status === 200) {
-        alert("Xác thực thành công.");
-        navigate("/home"); // Điều hướng sang trang chủ của web sau khi xác thực thành công
-      }
+        if (response.status === 200) {
+            alert("Xác thực thành công.");
+            navigate("/login"); // Điều hướng sang trang chủ sau khi xác minh
+        }
     } catch (error) {
-      setError("Mã xác minh không hợp lệ hoặc có lỗi xảy ra.");
-      console.error(error);
+        setError("Mã xác minh không hợp lệ hoặc có lỗi xảy ra.");
+        console.error(error);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
 
   return (
     <div className="bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

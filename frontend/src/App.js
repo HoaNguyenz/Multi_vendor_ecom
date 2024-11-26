@@ -5,9 +5,11 @@ import {LoginPage, SignupPage, HomePage,
   ShopInfoPage, VerifyPage, ForgotPasswordPage,
 ResetPasswordPage} from "./Routes.js"
 import "./App.css"
+import { AuthProvider } from "./context/AuthContext";
 
 const App = () => {
   return (
+    <AuthProvider>
     <BrowserRouter>
       <Routes>
         <Route path='/login' element={<LoginPage/>}></Route>
@@ -22,6 +24,7 @@ const App = () => {
         <Route path='/shop-info' element={<ShopInfoPage/>}></Route>
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   )
 }
 

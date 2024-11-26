@@ -1,27 +1,25 @@
 import { useNavigate } from "react-router-dom";
-import { useContext } from "react";
-import { AuthContext } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext"; 
+import axios from "../context/configAxios"; 
 
 const useLogout = () => {
   const navigate = useNavigate();
-  const { setUser } = useContext(AuthContext);
+  const { setUser } = useAuth(); // Lấy hàm cập nhật trạng thái người dùng từ context
 
   const logout = async () => {
     try {
-      const response = await fetch("http://localhost:5000/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      // Gửi yêu cầu logout đến backend bằng axios
+      const response = await axios.post("/logout");
 
-      if (response.ok) {
-        setUser(null);
-        localStorage.removeItem("token");
-        navigate("/login");
+      if (response.status === 200) {
+        console.log("Logout successful");
+        setUser(null); // Xóa trạng thái người dùng trong context
+        navigate("/login"); // Chuyển hướng về trang đăng nhập
       } else {
-        console.error("Logout failed:", response.statusText);
+        console.error("Logout failed:", response.data?.message || "Unknown error");
       }
     } catch (error) {
-      console.error("Error during logout:", error);
+      console.error("Error during logout:", error.response?.data?.message || error.message);
     }
   };
 
