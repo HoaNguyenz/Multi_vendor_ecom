@@ -8,6 +8,8 @@ import ShopInfoPage from "../src/pages/ShopInfoPage"
 import VerifyPage from "../src/pages/VerifyPage"
 import ForgotPasswordPage from "../src/pages/ForgotPasswordPage"
 import ResetPasswordPage from "../src/pages/ResetPasswordPage"
+import ProfilePage from './components/Home/ProfilePage'; 
+import Cart from './components/Cart/Cart'; 
 
 
 export{
@@ -20,5 +22,7 @@ export{
     ShopInfoPage,
     VerifyPage,
     ForgotPasswordPage,
-    ResetPasswordPage
+    ResetPasswordPage,
+    ProfilePage,
+    Cart
 };

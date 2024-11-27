@@ -150,6 +150,36 @@ app.post('/login', async (req, res) => {
 });
 
 // Route: Authenticate
+// app.get('/authenticate', async (req, res) => {
+//     const token = req.cookies.token;
+
+//     if (!token) {
+//         return res.status(401).json({ message: 'Bạn chưa đăng nhập.' });
+//     }
+
+//     try {
+//         // Xác thực token
+//         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+//         // Truy vấn người dùng dựa trên thông tin từ token
+//         const result = await sql.query`SELECT * FROM Nguoi_dung WHERE Sdt = ${decoded.id}`;
+//         const user = result.recordset[0];
+
+//         // Kiểm tra người dùng có tồn tại và còn hoạt động không
+//         if (!user || !user.isActive) {
+//             return res.status(404).json({ message: 'Người dùng không tồn tại hoặc đã bị vô hiệu hóa.' });
+//         }
+
+//         // Trả về thông tin người dùng cần thiết
+//         res.status(200).json({
+//             username: user.Username,
+//             email: user.Email,
+//         });
+//     } catch (error) {
+//         // Lỗi token hết hạn hoặc không hợp lệ
+//         return res.status(401).json({ message: 'Phiên đăng nhập không hợp lệ.', error: error.message });
+//     }
+// });
 app.get('/authenticate', async (req, res) => {
     const token = req.cookies.token;
 
@@ -161,25 +191,33 @@ app.get('/authenticate', async (req, res) => {
         // Xác thực token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Truy vấn người dùng dựa trên thông tin từ token
-        const result = await sql.query`SELECT * FROM Nguoi_dung WHERE Sdt = ${decoded.id}`;
-        const user = result.recordset[0];
+        // Truy vấn cơ sở dữ liệu
+        let user;
+        try {
+            const result = await sql.query`SELECT * FROM Nguoi_dung WHERE Sdt = ${decoded.id}`;
+            user = result.recordset[0];
+        } catch (dbError) {
+            console.error("Database error:", dbError);
+            return res.status(500).json({ message: 'Lỗi hệ thống. Không thể truy vấn cơ sở dữ liệu.' });
+        }
 
         // Kiểm tra người dùng có tồn tại và còn hoạt động không
-        if (!user || !user.isActive) {
+        if (!user) {
             return res.status(404).json({ message: 'Người dùng không tồn tại hoặc đã bị vô hiệu hóa.' });
         }
 
         // Trả về thông tin người dùng cần thiết
-        res.status(200).json({
+        return res.status(200).json({
             username: user.Username,
             email: user.Email,
         });
     } catch (error) {
         // Lỗi token hết hạn hoặc không hợp lệ
+        console.error("Authentication error:", error.message);
         return res.status(401).json({ message: 'Phiên đăng nhập không hợp lệ.', error: error.message });
     }
 });
+
 
 // Route: Forgot Password
 app.post('/forgot-password', async (req, res) => {

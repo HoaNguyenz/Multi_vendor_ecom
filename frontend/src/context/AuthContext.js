@@ -16,9 +16,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const authenticateUser = async () => {
       try {
-        const response = await axios.get("/authenticate", {
-          withCredentials: true, // Cho phép gửi cookie
-        });
+        const response = await axios.get("/authenticate");
         setUser(response.data); // Lưu thông tin người dùng vào state
       } catch (error) {
         setUser(null); // Nếu lỗi, coi như chưa đăng nhập

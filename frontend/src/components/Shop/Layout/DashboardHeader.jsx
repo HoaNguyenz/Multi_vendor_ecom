@@ -1,25 +1,28 @@
-import React, { useState } from "react";
+import React, { useState} from "react";
 import { Link } from "react-router-dom";
 import { AiOutlineShoppingCart } from "react-icons/ai";
-import { BiMenuAltLeft } from "react-icons/bi";
-import { IoIosArrowDown } from "react-icons/io";
 import { useAuth } from "../../../context/AuthContext"; // Import context
 import useLogout from "../../../hooks/useLogout";
 
-const DashboardHeader = () => {
-    const { user } = useAuth();  // Lấy thông tin người dùng từ context
-    const { logout } = useLogout();
-    const [profileMenu, setProfileMenu] = useState(false);
+const Header = () => {
+  const { user, loading } = useAuth(); // Lấy trạng thái loading từ context
+  const [profileMenu, setProfileMenu] = useState(false);
+  const { logout } = useLogout();
+ 
+
+  if (loading) {
+    return <div>Đang tải...</div>; // Hoặc hiển thị spinner
+  }
 
   return (
-    <div className="w-full bg-blue-400 h-[60px] flex items-center justify-between px-4">
+    <div className="w-full bg-blue-500 h-[60px] flex items-center justify-between px-4 md:px-8">
       {/* Logo */}
-      <div className="text-white font-bold text-2xl">
+      <div className="text-white font-bold text-xl md:text-2xl">
         <Link to="/">LOGO</Link>
       </div>
 
-      {/* Biểu tượng Giỏ hàng, và Profile */}
-      <div className="flex items-center space-x-6 text-white">
+      {/* Biểu tượng Thông báo, Giỏ hàng, và Profile */}
+      <div className="flex items-center md:space-x-6 text-white">
         <Link to="/cart">
           <AiOutlineShoppingCart size={28} className="cursor-pointer" />
         </Link>
@@ -67,4 +70,4 @@ const DashboardHeader = () => {
   );
 };
 
-export default DashboardHeader;
+export default Header;

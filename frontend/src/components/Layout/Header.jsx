@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { AiOutlineSearch, AiOutlineShoppingCart } from "react-icons/ai";
-import { BiMenuAltLeft } from "react-icons/bi";
+import { AiOutlineSearch, AiOutlineShoppingCart, AiOutlineLogin } from "react-icons/ai";
+import { CgProfile } from "react-icons/cg";
+import { BiMenuAltLeft, BiLogIn } from "react-icons/bi";
 import { IoIosArrowDown } from "react-icons/io";
 import { useAuth } from "../../context/AuthContext"; // Import context
 import useLogout from "../../hooks/useLogout";
-
 
 const Header = () => {
   const { user, loading } = useAuth(); // Lấy trạng thái loading từ context
@@ -15,6 +15,29 @@ const Header = () => {
   const profileMenuRef = useRef(null);
   const { logout } = useLogout();
   const [searchTerm, setSearchTerm] = useState("");
+  // Danh mục sản phẩm
+  const categories = [
+    "Áo sơ mi",
+    "Áo thun",
+    "Quần jeans",
+    "Váy đầm",
+    "Phụ kiện",
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target)
+      ) {
+        setProfileMenu(false); // Đóng menu nếu click ra ngoài
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   if (loading) {
     return <div>Đang tải...</div>; // Hoặc hiển thị spinner
@@ -35,19 +58,21 @@ const Header = () => {
         <Link to="/">LOGO</Link>
       </div>
 
-      {/* Category */}
-      <div>
-        <button className="h-[6vh] w-[20vw] items-center justify-between px-4 bg-white text-lg font-[400] select-none rounded-md hidden md:flex">
+      {/* Danh mục */}
+      <div className="relative hidden md:block">
+        <button
+          onClick={() => setCategoryMenu(!categoryMenu)}
+          className="h-[6vh] w-[20vw] flex items-center justify-between px-4 bg-white text-lg font-[400] select-none rounded-md"
+        >
           <div className="flex items-center">
             <BiMenuAltLeft size={25} className="mr-2" />
-            <span className="text-base md:text-sm lg:text-base">Tất cả danh mục</span>
+            <span className=" md:text-sm lg:text-lg">Tất cả danh mục</span>
           </div>
           <IoIosArrowDown size={20} className="ml-2" />
         </button>
-
         {/* Dropdown danh mục */}
         {categoryMenu && (
-          <div className="absolute bg-white shadow-md rounded-md mt-2 w-[250px] z-50">
+          <div className="absolute bg-white shadow-md rounded-md mt-2 w-[20vw] z-50">
             {categories.map((category, idx) => (
               <Link
                 to={`/category/${category.toLowerCase().replace(" ", "-")}`}
@@ -62,7 +87,7 @@ const Header = () => {
       </div>
 
       {/* Thanh tìm kiếm */}
-      <div className="relative w-[70%] max-w-[600px] hidden md:block">
+      <div className="relative w-[60%] max-w-[600px]">
         <input
           type="text"
           placeholder="Tìm sản phẩm bạn muốn..."
@@ -87,21 +112,39 @@ const Header = () => {
         <div className="relative">
           {user ? (
             // Nếu người dùng đã đăng nhập, hiển thị avatar hoặc ảnh đại diện
-            <button onClick={() => { setProfileMenu(!profileMenu)}} className="focus:outline-none">
-              <span className="text-white font-semibold">{user.username}</span> {/* Hiển thị username */}
+            <button
+              onClick={() => {
+                setProfileMenu(!profileMenu);
+              }}
+              className="focus:outline-none"
+            >
+              <CgProfile size={28} className="cursor-pointer"></CgProfile>
+              {/* Hiển thị username */}
             </button>
           ) : (
             // Nếu người dùng chưa đăng nhập, hiển thị nút "Đăng nhập"
-            <Link to="/login" className="text-white">Đăng nhập</Link>
+            <Link
+              to="/login"
+              
+            >
+              <BiLogIn size={28} className="block md:hidden text-white"></BiLogIn>
+              <span className="hidden md:block bg-white text-blue-500 font-semibold py-2 px-4 rounded-md hover:bg-blue-100 transition-all duration-300 shadow-md">Đăng nhập</span>
+            </Link>
           )}
 
           {/* Menu profile */}
           {profileMenu && (
-            <div className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden">
-              <Link to="/profile" className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <div className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden z-50">
+              <Link
+                to="/profile"
+                className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
                 Hồ sơ cá nhân
               </Link>
-              <Link to="/shop-dashboard" className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+              <Link
+                to="/shop-dashboard"
+                className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
                 Cửa hàng của tôi
               </Link>
               <button

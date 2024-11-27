@@ -2,6 +2,7 @@ import React from "react";
 import { AiOutlineBell, AiOutlineShoppingCart } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
 import { Link } from "react-router-dom";
+import Header from "../Layout/Header";
 
 const ProfilePage = () => {
   const userInfo = {
@@ -15,33 +16,7 @@ const ProfilePage = () => {
   return (
     <div className="w-full min-h-screen bg-gray-100">
       {/* Header */}
-      <div className="w-full bg-blue-500 h-[60px] flex items-center justify-between px-8">
-        <div className="text-white font-bold text-xl">
-          <Link to="/">LOGO</Link>
-        </div>
-        <div className="flex items-center space-x-6 text-white">
-          {/* Thông báo */}
-          <div className="relative cursor-pointer">
-            <AiOutlineBell size={28} />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-[16px] h-[16px] flex items-center justify-center rounded-full">
-              3
-            </span>
-          </div>
-
-          {/* Giỏ hàng */}
-          <div className="relative cursor-pointer">
-            <AiOutlineShoppingCart size={28} />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-[16px] h-[16px] flex items-center justify-center rounded-full">
-              5
-            </span>
-          </div>
-
-          {/* Hồ sơ */}
-          <div className="relative cursor-pointer">
-            <CgProfile size={28} />
-          </div>
-        </div>
-      </div>
+      <Header></Header>
 
       {/* Profile Content */}
       <div className="w-[90%] md:w-[70%] lg:w-[50%] bg-white mt-10 p-6 rounded-lg shadow-lg mx-auto">
