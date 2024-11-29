@@ -21,7 +21,8 @@ export const AuthProvider = ({ children }) => {
         setUser({
           username: response.data.username,
           email: response.data.email,
-          la_nguoi_ban: response.data.la_nguoi_ban, // Lưu thông tin La_nguoi_ban vào state
+          la_nguoi_ban: response.data.la_nguoi_ban,
+          sdt: response.data.sdt, // Lưu thông tin La_nguoi_ban vào state
         });
       } catch (error) {
         setUser(null); // Nếu lỗi, coi như chưa đăng nhập

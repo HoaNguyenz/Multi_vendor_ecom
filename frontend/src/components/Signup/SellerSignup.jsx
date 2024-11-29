@@ -3,6 +3,7 @@ import styles from "../../styles/styles";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "../../context/configAxios";
+import { useAuth } from "../../context/AuthContext";
 
 const SellerSignup = () => {
   const [ten, setTen] = useState("");
@@ -13,13 +14,13 @@ const SellerSignup = () => {
   const [quanHuyen, setQuanHuyen] = useState("");
   const [tinhTP, setTinhTP] = useState("");
   const navigate = useNavigate();
-
+  const { user } = useAuth();
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       // Gửi yêu cầu đăng ký người bán đến backend
-      const response = await axios.post("http://localhost:5000/sign-up-seller", {
+      const response = await axios.post("sign-up-seller", {
         ten,
         mo_ta: moTa,
         url_logo: urlLogo,
@@ -27,6 +28,7 @@ const SellerSignup = () => {
         phuong_or_xa: phuongXa,
         quan_or_huyen: quanHuyen,
         tinh_or_tp: tinhTP,
+        sdt: user.sdt,
       });
 
       if (response.status === 201) {

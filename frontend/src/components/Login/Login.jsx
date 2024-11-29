@@ -22,7 +22,7 @@ const Login = () => {
   
         // Kiểm tra xem người dùng có phải là người bán không (trước khi đăng nhập)
         if (submitter.name === "sellerLogin") {
-          const sellerResponse = await axios.post("http://localhost:5000/isSeller", { email });
+          const sellerResponse = await axios.post("/isSeller", { email });
   
           if (sellerResponse.status !== 200) {
             alert(sellerResponse.data.message);
@@ -31,11 +31,11 @@ const Login = () => {
         }
   
         // Gửi yêu cầu đăng nhập tới backend
-        const response = await axios.post("http://localhost:5000/login", data);
+        const response = await axios.post("/login", data);
   
         if (response.status === 200) {
           // Lưu token và thông tin người dùng vào context
-          login({ token: response.data.token, email: email, username: response.data.username, la_nguoi_ban: response.data.la_nguoi_ban }); // Cập nhật thông tin người dùng trong context
+          login({ token: response.data.token, email: email, username: response.data.username, la_nguoi_ban: response.data.la_nguoi_ban, sdt: response.data.sdt}); // Cập nhật thông tin người dùng trong context
   
           // Điều hướng người dùng
           if (submitter.name === "normalLogin") {
