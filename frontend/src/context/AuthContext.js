@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
-import axios from "./configAxios"
+import axios from "./configAxios";
 
 const AuthContext = createContext();
 
@@ -17,7 +17,12 @@ export const AuthProvider = ({ children }) => {
     const authenticateUser = async () => {
       try {
         const response = await axios.get("/authenticate");
-        setUser(response.data); // Lưu thông tin người dùng vào state
+        console.log(response.data);
+        setUser({
+          username: response.data.username,
+          email: response.data.email,
+          la_nguoi_ban: response.data.la_nguoi_ban, // Lưu thông tin La_nguoi_ban vào state
+        });
       } catch (error) {
         setUser(null); // Nếu lỗi, coi như chưa đăng nhập
       } finally {

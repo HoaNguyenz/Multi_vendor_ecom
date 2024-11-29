@@ -3,10 +3,12 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import {LoginPage, SignupPage, HomePage, 
   ShopDashboardPage, ShopOrdersPage, ShopProductsPage, 
   ShopInfoPage, VerifyPage, ForgotPasswordPage,
-ResetPasswordPage, ProfilePage, Cart} from "./Routes.js"
+ResetPasswordPage, ProfilePage, Cart, SellerSignup} from "./Routes.js"
 import "./App.css"
 import { AuthProvider } from "./context/AuthContext";
-import PrivateRoute from './context/privateRoute.js';
+import UserRoute from './context/userRoute';
+import SellerRoute from './context/sellerRoute';
+
 
 const App = () => {
   return (
@@ -20,13 +22,14 @@ const App = () => {
           <Route path='/verify' element={<VerifyPage />} />
           <Route path='/' element={<HomePage />} />
           
-          {/* Các route yêu cầu đăng nhập */}
-          <Route path='/shop-dashboard' element={<PrivateRoute element={<ShopDashboardPage />} />} />
-          <Route path='/shop-orders' element={<PrivateRoute element={<ShopOrdersPage />} />} />
-          <Route path='/shop-products' element={<PrivateRoute element={<ShopProductsPage />} />} />
-          <Route path='/shop-info' element={<PrivateRoute element={<ShopInfoPage />} />} />
-          <Route path='/profile' element={<PrivateRoute element={<ProfilePage />} />} /> 
-          <Route path='/cart' element={<PrivateRoute element={<Cart />} />} /> 
+          {/* Các route yêu cầu đăng nhập */} 
+          <Route path='/shop-dashboard' element={<SellerRoute element={<ShopDashboardPage />} />} />
+          <Route path='/shop-orders' element={<SellerRoute element={<ShopOrdersPage />} />} />
+          <Route path='/shop-products' element={<SellerRoute element={<ShopProductsPage />} />} />
+          <Route path='/shop-info' element={<SellerRoute element={<ShopInfoPage />} />} />
+          <Route path='/profile' element={<UserRoute element={<ProfilePage />} />} /> 
+          <Route path='/sign-up-seller' element={<UserRoute element={<SellerSignup />} />} />
+          <Route path='/cart' element={<UserRoute element={<Cart />} />} /> 
       </Routes>
     </BrowserRouter>
     </AuthProvider>

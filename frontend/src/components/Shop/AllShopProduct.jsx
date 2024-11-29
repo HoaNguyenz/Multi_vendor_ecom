@@ -1,38 +1,59 @@
-import {React, useState} from "react";
+import { React, useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { Button } from "@mui/material";
-import AddProductPopup from "../Shop/Popup/AddProductPopup.jsx"
+import AddProductPopup from "../Shop/Popup/AddProductPopup.jsx";
+import axios from "../../context/configAxios.js";
 
 const AllShopProduct = () => {
-    const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const openPopup = () => setIsPopupOpen(true);
-    const closePopup = () => setIsPopupOpen(false);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [products, setProducts] = useState([]); // State lưu danh sách sản phẩm
+  const [loading, setLoading] = useState(true); // State để hiển thị loading
 
+  // Hàm mở/đóng popup thêm sản phẩm
+  const openPopup = () => setIsPopupOpen(true);
+  const closePopup = () => setIsPopupOpen(false);
+
+  // Hàm lấy danh sách sản phẩm từ API
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("/product-seller")
+      setProducts(response.data); // Lưu danh sách sản phẩm vào state
+      setLoading(false);
+    } catch (error) {
+      console.error("Lỗi khi lấy sản phẩm:", error);
+      setLoading(false);
+    }
+  };
+
+  // Gọi fetchProducts khi component được render lần đầu
+  useEffect(() => {
+    fetchProducts();
+  }, []);
   const columns = [
     {
-      field: "id",
+      field: "Ma_san_pham",
       headerName: "Mã sản phẩm",
       minWidth: 150,
       flex: 0.8,
       headerAlign: "center",
     },
     {
-      field: "name",
+      field: "Ten_san_pham",
       headerName: "Tên sản phẩm",
       minWidth: 130,
       flex: 1.2,
       headerAlign: "center",
     },
     {
-      field: "category",
+      field: "Ten_danh_muc",
       headerName: "Phân loại",
       minWidth: 70,
       flex: 0.7,
       headerAlign: "center",
     },
     {
-      field: "stock",
+      field: "Ton_kho",
       headerName: "Tồn kho",
       type: "number",
       minWidth: 80,
@@ -40,14 +61,14 @@ const AllShopProduct = () => {
       headerAlign: "center",
     },
     {
-      field: "price",
+      field: "Gia",
       headerName: "Đơn giá",
       minWidth: 120,
       flex: 0.6,
       headerAlign: "center",
     },
     {
-      field: "sold",
+      field: "SL_da_ban",
       headerName: "Đã bán",
       type: "number",
       minWidth: 80,
@@ -61,17 +82,19 @@ const AllShopProduct = () => {
       flex: 0.4,
       headerAlign: "center",
       sortable: false,
-      renderCell: (params) => {
-        return (
-          <>
-            <Button>
-              <RiDeleteBin6Line size={20}></RiDeleteBin6Line>
-            </Button>
-          </>
-        );
-      },
+      renderCell: (params) => (
+        <Button onClick={() => handleDelete(params.row.Ma_san_pham)}>
+          <RiDeleteBin6Line size={20} />
+        </Button>
+      ),
     },
   ];
+
+  // Hàm xử lý xóa sản phẩm
+  const handleDelete = (productId) => {
+    console.log("Xóa sản phẩm có mã:", productId);
+    // Thực hiện gọi API xóa sản phẩm tại đây
+  };
 
   return (
     <div className="w-[95%] bg-white shadow h-[85vh] rouded-[4px] p-3 overflow-y-scroll no-scrollbar">
@@ -81,7 +104,16 @@ const AllShopProduct = () => {
           Thêm sản phẩm
         </Button>
       </div>
-      <DataGrid columns={columns} pageSize={10}></DataGrid>
+      <DataGrid
+          rows={products.map((item) => ({
+            id: item.Ma_san_pham, // DataGrid yêu cầu mỗi dòng có field `id`
+            ...item,
+          }))}
+          columns={columns}
+          pageSize={10}
+          autoHeight
+          disableSelectionOnClick
+        />
       {isPopupOpen && <AddProductPopup onClose={closePopup} />}
     </div>
   );

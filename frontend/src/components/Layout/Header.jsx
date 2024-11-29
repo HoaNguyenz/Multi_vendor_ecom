@@ -6,6 +6,7 @@ import { BiMenuAltLeft, BiLogIn } from "react-icons/bi";
 import { IoIosArrowDown } from "react-icons/io";
 import { useAuth } from "../../context/AuthContext"; // Import context
 import useLogout from "../../hooks/useLogout";
+import axios from "../../context/configAxios";
 
 const Header = () => {
   const { user, loading } = useAuth(); // Lấy trạng thái loading từ context
@@ -15,14 +16,21 @@ const Header = () => {
   const profileMenuRef = useRef(null);
   const { logout } = useLogout();
   const [searchTerm, setSearchTerm] = useState("");
-  // Danh mục sản phẩm
-  const categories = [
-    "Áo sơ mi",
-    "Áo thun",
-    "Quần jeans",
-    "Váy đầm",
-    "Phụ kiện",
-  ];
+  const [categories, setCategories] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('/get-categories'); // Gọi API để lấy danh sách categories
+        setCategories(response.data); // Lưu danh sách categories vào state
+      } catch (error) {
+        setErrorMessage("Lỗi khi tải danh mục. Vui lòng thử lại.");
+        console.error("Error fetching categories", error);
+      }
+    };
+    fetchCategories();
+  }, []); // Dùng useEffect để gọi API khi component mount
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -73,15 +81,19 @@ const Header = () => {
         {/* Dropdown danh mục */}
         {categoryMenu && (
           <div className="absolute bg-white shadow-md rounded-md mt-2 w-[20vw] z-50">
-            {categories.map((category, idx) => (
-              <Link
-                to={`/category/${category.toLowerCase().replace(" ", "-")}`}
-                key={idx}
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                {category}
-              </Link>
-            ))}
+            {categories.length > 0 ? (
+              categories.map((category, idx) => (
+                <Link
+                  to={`/category/${category.toLowerCase().replace(" ", "-")}`}
+                  key={idx}
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  {category}
+                </Link>
+              ))
+            ) : (
+              <div className="px-4 py-2 text-sm text-gray-700">Không có danh mục nào</div>
+            )}
           </div>
         )}
       </div>
@@ -119,34 +131,48 @@ const Header = () => {
               className="focus:outline-none"
             >
               <CgProfile size={28} className="cursor-pointer"></CgProfile>
-              {/* Hiển thị username */}
             </button>
           ) : (
             // Nếu người dùng chưa đăng nhập, hiển thị nút "Đăng nhập"
-            <Link
-              to="/login"
-              
-            >
+            <Link to="/login">
               <BiLogIn size={28} className="block md:hidden text-white"></BiLogIn>
-              <span className="hidden md:block bg-white text-blue-500 font-semibold py-2 px-4 rounded-md hover:bg-blue-100 transition-all duration-300 shadow-md">Đăng nhập</span>
+              <span className="hidden md:block bg-white text-blue-500 font-semibold py-2 px-4 rounded-md hover:bg-blue-100 transition-all duration-300 shadow-md">
+                Đăng nhập
+              </span>
             </Link>
           )}
 
           {/* Menu profile */}
           {profileMenu && (
-            <div className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden z-50">
+            <div
+              ref={profileMenuRef}
+              className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden z-50"
+            >
               <Link
                 to="/profile"
                 className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 Hồ sơ cá nhân
               </Link>
-              <Link
-                to="/shop-dashboard"
-                className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Cửa hàng của tôi
-              </Link>
+
+              {user && user.la_nguoi_ban === true && (
+                <Link
+                  to="/shop-dashboard"
+                  className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Cửa hàng của tôi
+                </Link>
+              )}
+
+              {user.la_nguoi_ban === false && (
+                <Link
+                  to="/sign-up-seller"
+                  className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Đăng ký làm người bán
+                </Link>
+              )}
+
               <button
                 onClick={logout} // Gọi hàm logout từ context
                 className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

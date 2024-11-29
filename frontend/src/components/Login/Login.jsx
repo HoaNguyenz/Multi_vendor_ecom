@@ -13,26 +13,34 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Ngăn chặn việc gửi form mặc định
-
+  
     const submitter = e.nativeEvent.submitter;
-
+  
     if (submitter.name === "normalLogin" || submitter.name === "sellerLogin") {
       try {
         const data = { email, mat_khau: password };
-
+  
+        // Kiểm tra xem người dùng có phải là người bán không (trước khi đăng nhập)
+        if (submitter.name === "sellerLogin") {
+          const sellerResponse = await axios.post("http://localhost:5000/isSeller", { email });
+  
+          if (sellerResponse.status !== 200) {
+            alert(sellerResponse.data.message);
+            return;
+          }
+        }
+  
         // Gửi yêu cầu đăng nhập tới backend
         const response = await axios.post("http://localhost:5000/login", data);
-
+  
         if (response.status === 200) {
-          alert(response.data.token); // Hiển thị thông báo thành công
-
           // Lưu token và thông tin người dùng vào context
-          login({ token: response.data.token, email: email, username: response.data.username }); // Cập nhật thông tin người dùng trong context
-
-          // Điều hướng người dùng đến trang phù hợp
+          login({ token: response.data.token, email: email, username: response.data.username, la_nguoi_ban: response.data.la_nguoi_ban }); // Cập nhật thông tin người dùng trong context
+  
+          // Điều hướng người dùng
           if (submitter.name === "normalLogin") {
             navigate("/"); // Người dùng thường
-          } else {
+          } else if (submitter.name === "sellerLogin") {
             navigate("/shop-dashboard"); // Người bán
           }
         }
@@ -42,7 +50,6 @@ const Login = () => {
       }
     }
   };
-
   return (
     <div className="bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">

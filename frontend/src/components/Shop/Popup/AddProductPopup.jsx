@@ -1,6 +1,7 @@
-import { React, useState } from "react";
+import { React, useState, useEffect } from "react";
 import Select from "react-select";
 import { ChromePicker } from "react-color";
+import axios from "../../../context/configAxios";
 
 const AddProductPopup = ({ onClose }) => {
   const [images, setImages] = useState([]);
@@ -28,12 +29,26 @@ const AddProductPopup = ({ onClose }) => {
   const [category, setCategory] = useState(null);
   const [newCategory, setNewCategory] = useState("");
   const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
-  const [categories, setCategories] = useState(["Áo", "Quần", "Phụ kiện"]);
+  const [categories, setCategories] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
   const [hasError, setHasError] = useState(false);
   const [imageError, setImageError] = useState(null);
   const [priceError, setPriceError] = useState(null);
   const [stockError, setStockError] = useState(null);
+
+  // Tải danh sách danh mục khi component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get('/get-categories'); // Gọi API để lấy danh sách category
+        setCategories(response.data); // Lưu danh sách category
+      } catch (error) {
+        console.error("Error fetching categories", error);
+        setErrorMessage("Có lỗi khi tải danh mục. Vui lòng thử lại.");
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const categoryOptions = [
     ...categories.map((cat) => ({ value: cat, label: cat })),
@@ -73,14 +88,34 @@ const AddProductPopup = ({ onClose }) => {
     }
   };
 
-  const handleAddCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      setCategories([...categories, newCategory]);
-      setCategory({ value: newCategory, label: newCategory });
-      setNewCategory("");
-      setIsAddingNewCategory(false);
+  const handleAddCategory = async () => {
+    if (newCategory) {
+        // Kiểm tra xem danh mục đã tồn tại trong danh sách categories chưa
+        const existingCategory = categories.find((cat) => cat.toLowerCase() === newCategory.toLowerCase());
+
+        if (existingCategory) {
+            // Nếu danh mục đã tồn tại, chọn danh mục đó
+            setCategory({ value: existingCategory, label: existingCategory });
+            setNewCategory(""); // Clear input field
+            setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
+        } else {
+            // Nếu danh mục chưa tồn tại, thêm mới vào backend
+            try {
+                const response = await axios.post('/add-category', { ten_danh_muc: newCategory });
+                if (response.status === 201) {
+                    // Cập nhật danh sách category và chọn danh mục mới
+                    setCategories([...categories, newCategory]); // Cập nhật danh sách category
+                    setCategory({ value: newCategory, label: newCategory }); // Chọn danh mục mới
+                    setNewCategory(""); // Clear input field
+                    setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
+                }
+            } catch (error) {
+                setErrorMessage("Có lỗi khi thêm danh mục mới. Vui lòng thử lại.");
+                console.error("Error adding new category", error);
+            }
+        }
     }
-  };
+};
 
   const handlePriceChange = (price) => {
     if (price < 0) {
@@ -143,12 +178,12 @@ const AddProductPopup = ({ onClose }) => {
     setStock(updatedStock);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    images.forEach((image, index) => {
-      console.log(`Image ${index + 1}: ${image.file.name}`);
-    });
+    // images.forEach((image, index) => {
+    //   console.log(`Image ${index + 1}: ${image.file.name}`);
+    // });
 
     // Kiểm tra có ảnh sản phẩm chưa
     if (images.length === 0) {
@@ -165,10 +200,54 @@ const AddProductPopup = ({ onClose }) => {
 
       return;
     }
+    if (!category) {
+      setErrorMessage("Vui lòng chọn danh mục.");
+      return;
+    }
+    // Tạo mảng mau_ma_san_phams từ dữ liệu size và color
+  const mau_ma_san_phams = [];
+
+  size.forEach((s) => {
+    color.forEach(({ name: colorName, value: colorValue }) => {
+      // Lấy số lượng tồn kho cho từng sự kết hợp size và màu sắc từ state stock
+      const stockQuantity = stock[`${s}-${colorName}`];
+
+      mau_ma_san_phams.push({
+        mau_sac: colorName,
+        kich_co: s,
+        so_luong_ton_kho: stockQuantity,
+      });
+    });
+  });
+
+    const productData = {
+      ten_san_pham: name,
+      xuat_xu: origin,
+      thuong_hieu: brand,
+      mo_ta: description,
+      gia: price,
+      url_thumbnail: images.length > 0 ? images[0].preview : "", // Use the first image as the thumbnail
+      ten_danh_muc: category.value || 'Default', // You can default this if no category is selected
+      mau_ma_san_phams: mau_ma_san_phams,
+      hinh_anh_san_phams: images.map((image) => image.preview),
+    };
+    try {
+      const response = await axios.post('/add-product', productData);
+  
+      console.log(response.data.message);
+      alert('Thêm sản phẩm thành công!');
+  
+      // Close the form or reset fields after successful submission
+      onClose();
+    } catch (error) {
+      console.error("Error adding product:", error);
+      setHasError(true);
+      setErrorMessage('Có lỗi xảy ra khi thêm sản phẩm. Vui lòng thử lại.');
+    }
 
     // Nếu các điều kiện trên đều thỏa mãn
-    setErrorMessage(null);
-    setHasError(false);
+    // setErrorMessage(null);
+    // setHasError(false);
 
     // Xử lý lưu sản phẩm ở đây (nếu không có lỗi)
     console.log("Form submitted successfully!");
