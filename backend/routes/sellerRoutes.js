@@ -77,14 +77,6 @@ router.get("/seller-info", verifyToken, async (req, res) => {
     if (!seller) {
       return res.status(404).json({ message: "Người bán không tồn tại." });
     }
-
-    const danhMucResult = await sql.query`SELECT Ten_danh_muc
-  FROM Danh_muc_hang
-  WHERE Ma_cua_hang = ${seller.Ma_cua_hang}`;
-    // const danhMuc = danhMucResult.recordset;
-    const danhMuc = danhMucResult.recordset.map((item) => item.Ten_danh_muc);
-    seller.danh_muc_hang = danhMuc;
-
     res.status(200).json(seller);
   } catch (error) {
     console.error(error);

@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import {LoginPage, SignupPage, HomePage, 
   ShopDashboardPage, ShopOrdersPage, ShopProductsPage, 
   ShopInfoPage, VerifyPage, ForgotPasswordPage,
-ResetPasswordPage, ProfilePage, Cart, SellerSignup} from "./Routes.js"
+ResetPasswordPage, ProfilePage, Cart, SellerSignup, SearchProductPage} from "./Routes.js"
 import "./App.css"
 import { AuthProvider } from "./context/AuthContext";
 import UserRoute from './context/userRoute';
@@ -21,6 +21,7 @@ const App = () => {
           <Route path='/sign-up' element={<SignupPage />} />
           <Route path='/verify' element={<VerifyPage />} />
           <Route path='/' element={<HomePage />} />
+          <Route path='/search' element={<SearchProductPage />} />
           
           {/* Các route yêu cầu đăng nhập */} 
           <Route path='/shop-dashboard' element={<SellerRoute element={<ShopDashboardPage />} />} />

@@ -44,29 +44,6 @@ router.get("/get-user-info/:username", async (req, res) => {
     }
   });
   
-
-// Route: Update User Information
-// router.put("/update-user", async (req, res) => {
-//   const { sdt, email, username } = req.body;
-
-//   try {
-//     // Cập nhật thông tin người dùng trong bảng Nguoi_dung_va_Gio_hang
-//     await sql.query`
-//               UPDATE Nguoi_dung_va_Gio_hang 
-//               SET Email = ${email}, Username = ${username}
-//               WHERE Sdt = ${sdt}
-//           `;
-
-//     res
-//       .status(200)
-//       .json({ message: "Thông tin người dùng đã được cập nhật thành công." });
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ message: "Cập nhật thông tin người dùng thất bại", error });
-//   }
-// });
 // Route: Update User Information
 router.put("/update-user", async (req, res) => {
   const { sdt, ho_va_ten, gioi_tinh, ngay_sinh } = req.body;
@@ -88,6 +65,5 @@ router.put("/update-user", async (req, res) => {
     res.status(500).json({ message: "Cập nhật thông tin người dùng thất bại", error });
   }
 });
-
 
 module.exports = router;

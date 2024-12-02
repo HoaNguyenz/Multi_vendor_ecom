@@ -11,6 +11,7 @@ import ResetPasswordPage from "../src/pages/ResetPasswordPage"
 import ProfilePage from './components/Profile/ProfilePage'; 
 import Cart from './components/Cart/Cart'; 
 import SellerSignup from './components/Signup/SellerSignup';
+import SearchProductPage from "./pages/SearchProductPage"
 
 
 export{
@@ -26,5 +27,6 @@ export{
     ResetPasswordPage,
     ProfilePage,
     Cart,
-    SellerSignup
+    SellerSignup,
+    SearchProductPage
 };

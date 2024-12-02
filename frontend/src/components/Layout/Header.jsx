@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import { AiOutlineSearch, AiOutlineShoppingCart, AiOutlineLogin } from "react-icons/ai";
+import { Link, useNavigate, useLocation } from "react-router-dom"; // Import useNavigate
+import { AiOutlineSearch, AiOutlineShoppingCart } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
 import { BiMenuAltLeft, BiLogIn } from "react-icons/bi";
 import { IoIosArrowDown } from "react-icons/io";
@@ -9,36 +9,45 @@ import useLogout from "../../hooks/useLogout";
 import axios from "../../context/configAxios";
 
 const Header = () => {
-  const { user, loading } = useAuth(); // Lấy trạng thái loading từ context
+  const { user, loading } = useAuth();
   const [profileMenu, setProfileMenu] = useState(false);
   const [categoryMenu, setCategoryMenu] = useState(false);
-  const [showCart, setShowCart] = useState(false); // Trạng thái giỏ hàng
   const profileMenuRef = useRef(null);
-  const { logout } = useLogout();
+  const categoryMenuRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState([]);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [category, setCategory] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useLogout();
 
+  //get categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('/get-categories'); // Gọi API để lấy danh sách categories
-        setCategories(response.data); // Lưu danh sách categories vào state
+        const response = await axios.get("/get-categories");
+        setCategories(response.data);
       } catch (error) {
-        setErrorMessage("Lỗi khi tải danh mục. Vui lòng thử lại.");
         console.error("Error fetching categories", error);
       }
     };
     fetchCategories();
-  }, []); // Dùng useEffect để gọi API khi component mount
+  }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setSearchTerm(params.get("keyword") || "");
+    setCategory(params.get("category") || "");
+  }, [location.search]);
+
+  //handle click outside profile
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         profileMenuRef.current &&
         !profileMenuRef.current.contains(event.target)
       ) {
-        setProfileMenu(false); // Đóng menu nếu click ra ngoài
+        setProfileMenu(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -47,26 +56,48 @@ const Header = () => {
     };
   }, []);
 
-  if (loading) {
-    return <div>Đang tải...</div>; // Hoặc hiển thị spinner
-  }
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  //handle click outside category
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        categoryMenuRef.current &&
+        !categoryMenuRef.current.contains(event.target)
+      ) {
+        setCategoryMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleSearch = () => {
-    console.log("Tìm kiếm:", searchTerm); // Tích hợp tìm kiếm sản phẩm quần áo
+    navigate(`/search?keyword=${searchTerm}&category=${category}`);
+    window.location.reload();
+  };
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  // Hàm xử lý khi chọn category
+  const handleCategorySelect = (categoryItem) => {
+    if (categoryItem === "Tất cả danh mục") {
+      setCategory(""); // Reset category nếu chọn "Tất cả danh mục"
+    } else {
+      setCategory(categoryItem);
+    }
+    setCategoryMenu(false); // Đóng menu sau khi chọn
   };
 
   return (
     <div className="w-full bg-blue-500 h-[60px] flex items-center justify-between px-4 md:px-8">
-      {/* Logo */}
       <div className="text-white font-bold text-xl md:text-2xl">
         <Link to="/">LOGO</Link>
       </div>
 
-      {/* Danh mục */}
       <div className="relative hidden md:block">
         <button
           onClick={() => setCategoryMenu(!categoryMenu)}
@@ -74,37 +105,47 @@ const Header = () => {
         >
           <div className="flex items-center">
             <BiMenuAltLeft size={25} className="mr-2" />
-            <span className=" md:text-sm lg:text-lg">Tất cả danh mục</span>
+            <span className="md:text-sm lg:text-lg">
+              {category || "Tất cả danh mục"}
+            </span>
           </div>
           <IoIosArrowDown size={20} className="ml-2" />
         </button>
-        {/* Dropdown danh mục */}
         {categoryMenu && (
-          <div className="absolute bg-white shadow-md rounded-md mt-2 w-[20vw] z-50">
-            {categories.length > 0 ? (
-              categories.map((category, idx) => (
-                <Link
-                  to={`/category/${category.toLowerCase().replace(" ", "-")}`}
-                  key={idx}
-                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  {category}
-                </Link>
-              ))
-            ) : (
-              <div className="px-4 py-2 text-sm text-gray-700">Không có danh mục nào</div>
-            )}
+          <div
+            className="absolute bg-white shadow-md rounded-md mt-2 w-[20vw] z-50"
+            ref={categoryMenuRef}
+          >
+            {categories.map((categoryItem, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setCategory(categoryItem);
+                  setCategoryMenu(false);
+                }}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full rounded-md text-left"
+              >
+                {categoryItem}
+              </button>
+            ))}
+            <button
+              onClick={() => handleCategorySelect("Tất cả danh mục")}
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full rounded-md text-left"
+            >
+              Tất cả danh mục
+            </button>
           </div>
         )}
       </div>
 
-      {/* Thanh tìm kiếm */}
+        {/* Search bar */}
       <div className="relative w-[60%] max-w-[600px]">
         <input
           type="text"
           placeholder="Tìm sản phẩm bạn muốn..."
           value={searchTerm}
-          onChange={handleSearchChange}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={handleKeyPress}
           className="w-full h-[6vh] px-4 pr-10 rounded-full border-none focus:outline-none shadow-sm"
         />
         <AiOutlineSearch
@@ -114,34 +155,30 @@ const Header = () => {
         />
       </div>
 
-      {/* Biểu tượng Thông báo, Giỏ hàng, và Profile */}
+        {/* User avatar/ Login Button */}
       <div className="flex items-center md:space-x-6 text-white">
         <Link to="/cart">
           <AiOutlineShoppingCart size={28} className="cursor-pointer" />
         </Link>
-
-        {/* Biểu tượng Profile */}
         <div className="relative">
           {user ? (
-            // Nếu người dùng đã đăng nhập, hiển thị avatar hoặc ảnh đại diện
             <button
-              onClick={() => {
-                setProfileMenu(!profileMenu);
-              }}
+              onClick={() => setProfileMenu(!profileMenu)}
               className="focus:outline-none"
             >
-              <CgProfile size={28} className="cursor-pointer"></CgProfile>
+              <CgProfile size={28} className="cursor-pointer" />
             </button>
           ) : (
-            // Nếu người dùng chưa đăng nhập, hiển thị nút "Đăng nhập"
             <Link to="/login">
-              <BiLogIn size={28} className="block md:hidden text-white"></BiLogIn>
+              <BiLogIn
+                size={28}
+                className="block md:hidden text-white"
+              ></BiLogIn>
               <span className="hidden md:block bg-white text-blue-500 font-semibold py-2 px-4 rounded-md hover:bg-blue-100 transition-all duration-300 shadow-md">
                 Đăng nhập
               </span>
             </Link>
           )}
-
           {/* Menu profile */}
           {profileMenu && (
             <div

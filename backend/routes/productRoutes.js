@@ -129,78 +129,102 @@ router.post("/add-product", verifyToken, async (req, res) => {
   }
 });
 
-// Route: Search Products
-router.get("/search-products", verifyToken, async (req, res) => {
-  const { keyword, filters } = req.query;
-
+//Route: Get Filter Option
+router.get("/filter-options", async (req, res) => {
   try {
-    // Kiểm tra nếu không có từ khóa tìm kiếm, yêu cầu phải có keyword
-    if (!keyword) {
-      return res
-        .status(400)
-        .json({ message: "Bạn phải cung cấp từ khóa tìm kiếm." });
-    }
+    // Truy vấn để lấy các giá trị độc nhất cho bộ lọc
+    const origins = await sql.query`SELECT DISTINCT Xuat_xu FROM San_pham WHERE Xuat_xu IS NOT NULL`;
+    const brands = await sql.query`SELECT DISTINCT Thuong_hieu FROM San_pham WHERE Thuong_hieu IS NOT NULL`;
+    const colors = await sql.query`SELECT DISTINCT Mau_sac FROM Mau_ma_san_pham WHERE Mau_sac IS NOT NULL`;
+    const sizes = await sql.query`SELECT DISTINCT Kich_co FROM Mau_ma_san_pham WHERE Kich_co IS NOT NULL`;
 
-    // Câu truy vấn cơ sở dữ liệu để tìm kiếm sản phẩm
-    let query = `SELECT * FROM San_pham WHERE Ten_san_pham LIKE '%${keyword}%'`;
-
-    // Thêm điều kiện lọc nếu có
-    if (filters) {
-      const { brand, priceRange, seller } = JSON.parse(filters);
-      if (brand) query += ` AND Thuong_hieu = '${brand}'`;
-      if (priceRange)
-        query += ` AND Gia BETWEEN ${priceRange.min} AND ${priceRange.max}`;
-      if (seller) query += ` AND Nguoi_ban = '${seller}'`;
-    }
-
-    // Truy vấn cơ sở dữ liệu
-    const products = await sql.query(query);
-
-    // Không có sản phẩm phù hợp
-    if (products.recordset.length === 0) {
-      return res.status(404).json({
-        message: "Không có sản phẩm nào phù hợp với yêu cầu tìm kiếm của bạn.",
-      });
-    }
-
-    // Hiển thị kết quả
-    res.status(200).json(products.recordset);
+    // Trả về kết quả
+    res.status(200).json({
+      origins: origins.recordset.map((row) => row.Xuat_xu),
+      brands: brands.recordset.map((row) => row.Thuong_hieu),
+      colors: colors.recordset.map((row) => row.Mau_sac),
+      sizes: sizes.recordset.map((row) => row.Kich_co),
+    });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Lỗi hệ thống khi tìm kiếm sản phẩm.", error });
+    console.error("Error fetching filter options:", error);
+    res.status(500).json({ message: "Lỗi hệ thống. Vui lòng thử lại." });
   }
 });
 
 // Route: Search Products
 router.get("/search-products", async (req, res) => {
-  const { keyword } = req.query;
+  const {
+    keyword,
+    origin,        // có thể là mảng
+    brand,         // có thể là mảng
+    priceMin,
+    priceMax,
+    color,         // có thể là mảng
+    size,          // có thể là mảng
+    inStock,
+    category,
+  } = req.query;
 
   try {
-    if (!keyword) {
-      return res.status(400).json({ message: "Vui lòng nhập từ khóa." });
+    let query = `
+      SELECT sp.*, mms.Mau_sac, mms.Kich_co, mms.So_luong_ton_kho
+      FROM San_pham sp
+      LEFT JOIN Mau_ma_san_pham mms ON sp.Ma_san_pham = mms.Ma_san_pham
+      WHERE 1 = 1
+    `;
+
+    // Thêm các điều kiện lọc
+    if (keyword) query += ` AND sp.Ten_san_pham COLLATE Latin1_General_CI_AI LIKE N'%${keyword}%'`;
+    if (category) query += ` AND sp.Ten_danh_muc = N'${category}'`;
+
+    // Xử lý mảng (nếu `origin` là mảng, chuyển thành chuỗi để dùng trong `IN`)
+    if (origin) {
+      const origins = Array.isArray(origin) ? origin : [origin];
+      query += ` AND sp.Xuat_xu IN (${origins.map((o) => `N'${o}'`).join(",")})`;
     }
 
-    const result = await sql.query`
-              SELECT * FROM San_pham WHERE Ten_san_pham LIKE '%${keyword}%'
-          `;
+    if (brand) {
+      const brands = Array.isArray(brand) ? brand : [brand];
+      query += ` AND sp.Thuong_hieu IN (${brands.map((b) => `N'${b}'`).join(",")})`;
+    }
 
-    const products = result.recordset;
+    if (priceMin) query += ` AND sp.Gia >= ${priceMin}`;
+    if (priceMax) query += ` AND sp.Gia <= ${priceMax}`;
 
-    if (products.length === 0) {
+    if (color) {
+      const colors = Array.isArray(color) ? color : [color];
+      query += ` AND mms.Mau_sac IN (${colors.map((c) => `N'${c}'`).join(",")})`;
+    }
+
+    if (size) {
+      const sizes = Array.isArray(size) ? size : [size];
+      query += ` AND mms.Kich_co IN (${sizes.map((s) => `N'${s}'`).join(",")})`;
+    }
+
+    if (inStock) {
+      if (inStock === "true" || inStock === 1) {
+        query += ` AND mms.So_luong_ton_kho > 0`;
+      } else if (inStock === "false" || inStock === 0) {
+        query += ` AND mms.So_luong_ton_kho = 0`;
+      }
+    }
+
+    // Thêm phần phân trang
+    query += ` ORDER BY sp.Ma_san_pham OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`;
+
+    // Thực hiện truy vấn
+    const products = await sql.query(query);
+
+    if (products.recordset.length === 0) {
       return res.status(404).json({
-        message: "Không có sản phẩm nào phù hợp với từ khóa tìm kiếm.",
+        message: "Không có sản phẩm nào phù hợp với yêu cầu tìm kiếm.",
       });
     }
 
-    res.status(200).json(products);
+    res.json(products.recordset);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: "Lỗi khi tìm kiếm sản phẩm.",
-      error: error.message,
-    });
+    console.error("Error:", error);
+    res.status(500).json({ message: "Có lỗi xảy ra khi lấy sản phẩm." });
   }
 });
 
@@ -275,7 +299,7 @@ router.get("/product-detail/:id", verifyToken, async (req, res) => {
 router.get("/best-selling-products", async (req, res) => {
   try {
     const result = await sql.query`
-              SELECT TOP 50 * FROM San_pham ORDER BY SL_da_ban DESC
+              SELECT TOP 10 * FROM San_pham ORDER BY SL_da_ban DESC
           `;
 
     const products = result.recordset;

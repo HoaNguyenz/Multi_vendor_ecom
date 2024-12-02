@@ -6,7 +6,7 @@ import { IoShirtOutline } from "react-icons/io5";
 
 const DashboardSidebar = ({ active }) => {
   return (
-    <div className="w-full h-[89vh] bg-white shadow-sm overflow-y-scroll sticky top-0 left-0 z-10 no-scrollbar">
+    <div className="w-full h-[100vh] bg-white shadow-sm overflow-y-scroll sticky top-0 left-0 z-10 no-scrollbar">
       <div
         className={`w-full flex items-center p-4 ${
           active === 1 ? "bg-[#1E90FF] bg-opacity-50" : "bg-white"
