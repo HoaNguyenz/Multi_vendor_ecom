@@ -40,7 +40,7 @@ const AddProductPopup = ({ onClose }) => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('/get-categories'); // Gọi API để lấy danh sách category
+        const response = await axios.get("/get-categories"); // Gọi API để lấy danh sách category
         setCategories(response.data); // Lưu danh sách category
       } catch (error) {
         console.error("Error fetching categories", error);
@@ -55,28 +55,67 @@ const AddProductPopup = ({ onClose }) => {
     { value: "add_new", label: "+ Thêm danh mục mới" },
   ];
 
+  const handleImageUpload = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "eCommercePreset");
+  
+    try {
+      const response = await axios.post(`https://api.cloudinary.com/v1_1/dlihdjok9/image/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: "",
+      });
+      return response.data.secure_url;
+    } catch (error) {
+      console.error("Upload failed", error);
+      throw error;
+    }
+  };
+  
+  // const handleImageChange = async (e) => {
+  //   const files = Array.from(e.target.files);
+  
+  //   if (images.length + files.length > 7) {
+  //     setImageError("Bạn chỉ có thể tải lên tối đa 7 hình ảnh.");
+  //     return;
+  //   }
+  
+  //   const uploadedImages = [];
+  //   for (const file of files) {
+  //     try {
+  //       const imageUrl = await handleImageUpload(file);
+  //       uploadedImages.push(imageUrl);
+  //     } catch (error) {
+  //       setImageError("Lỗi khi upload ảnh.");
+  //     }
+  //   }
+  //   setImages((prevImages) => {
+  //     const newImages = [...prevImages, ...uploadedImages];
+  //     console.log(newImages); // Log giá trị sau khi update
+  //     return newImages;
+  //   });
+  //   console.log(images);
+  // };  
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
-
-    // Check if adding these files would exceed the limit of 7
+  
     if (images.length + files.length > 7) {
       setImageError("Bạn chỉ có thể tải lên tối đa 7 hình ảnh.");
       return;
     }
-
-    setImageError(""); // Clear any existing error message
+  
     const newImages = files.map((file) => ({
       file,
-      preview: URL.createObjectURL(file),
+      preview: URL.createObjectURL(file), // Lưu preview ảnh cho hiển thị
     }));
+  
     setImages((prevImages) => [...prevImages, ...newImages]);
   };
-
-  // Handle image delete
+  
   const handleImageDelete = (index) => {
     const updatedImages = images.filter((_, i) => i !== index);
     setImages(updatedImages);
-  };
+  }; 
 
   const handleCategoryChange = (selectedOption) => {
     if (selectedOption.value === "add_new") {
@@ -90,32 +129,36 @@ const AddProductPopup = ({ onClose }) => {
 
   const handleAddCategory = async () => {
     if (newCategory) {
-        // Kiểm tra xem danh mục đã tồn tại trong danh sách categories chưa
-        const existingCategory = categories.find((cat) => cat.toLowerCase() === newCategory.toLowerCase());
+      // Kiểm tra xem danh mục đã tồn tại trong danh sách categories chưa
+      const existingCategory = categories.find(
+        (cat) => cat.toLowerCase() === newCategory.toLowerCase()
+      );
 
-        if (existingCategory) {
-            // Nếu danh mục đã tồn tại, chọn danh mục đó
-            setCategory({ value: existingCategory, label: existingCategory });
+      if (existingCategory) {
+        // Nếu danh mục đã tồn tại, chọn danh mục đó
+        setCategory({ value: existingCategory, label: existingCategory });
+        setNewCategory(""); // Clear input field
+        setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
+      } else {
+        // Nếu danh mục chưa tồn tại, thêm mới vào backend
+        try {
+          const response = await axios.post("/add-category", {
+            ten_danh_muc: newCategory,
+          });
+          if (response.status === 201) {
+            // Cập nhật danh sách category và chọn danh mục mới
+            setCategories([...categories, newCategory]); // Cập nhật danh sách category
+            setCategory({ value: newCategory, label: newCategory }); // Chọn danh mục mới
             setNewCategory(""); // Clear input field
             setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
-        } else {
-            // Nếu danh mục chưa tồn tại, thêm mới vào backend
-            try {
-                const response = await axios.post('/add-category', { ten_danh_muc: newCategory });
-                if (response.status === 201) {
-                    // Cập nhật danh sách category và chọn danh mục mới
-                    setCategories([...categories, newCategory]); // Cập nhật danh sách category
-                    setCategory({ value: newCategory, label: newCategory }); // Chọn danh mục mới
-                    setNewCategory(""); // Clear input field
-                    setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
-                }
-            } catch (error) {
-                setErrorMessage("Có lỗi khi thêm danh mục mới. Vui lòng thử lại.");
-                console.error("Error adding new category", error);
-            }
+          }
+        } catch (error) {
+          setErrorMessage("Có lỗi khi thêm danh mục mới. Vui lòng thử lại.");
+          console.error("Error adding new category", error);
         }
+      }
     }
-};
+  };
 
   const handlePriceChange = (price) => {
     if (price < 0) {
@@ -181,44 +224,52 @@ const AddProductPopup = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // images.forEach((image, index) => {
-    //   console.log(`Image ${index + 1}: ${image.file.name}`);
-    // });
-
     // Kiểm tra có ảnh sản phẩm chưa
     if (images.length === 0) {
       setImageError("Vui lòng chọn ít nhất một hình ảnh minh hoạ");
       setHasError(true);
       return;
     }
-
     // Kiểm tra nếu chưa chọn size hoặc màu sắc
     if (size.length === 0 || color.length === 0) {
       setErrorMessage("");
       setErrorMessage("Vui lòng chọn ít nhất một size và một màu sắc.");
       setHasError(true);
-
       return;
     }
+    // Kiểm tra nếu chưa chọn category
     if (!category) {
       setErrorMessage("Vui lòng chọn danh mục.");
       return;
     }
+
+    // Upload ảnh
+    const uploadedImages = [];
+    for (const image of images) {
+      try {
+        const imageUrl = await handleImageUpload(image.file); // Thực hiện upload ảnh khi submit
+        uploadedImages.push(imageUrl);
+      } catch (error) {
+        setImageError("Lỗi khi upload ảnh.");
+        return;
+      }
+    }
+
     // Tạo mảng mau_ma_san_phams từ dữ liệu size và color
-  const mau_ma_san_phams = [];
+    const mau_ma_san_phams = [];
 
-  size.forEach((s) => {
-    color.forEach(({ name: colorName, value: colorValue }) => {
-      // Lấy số lượng tồn kho cho từng sự kết hợp size và màu sắc từ state stock
-      const stockQuantity = stock[`${s}-${colorName}`];
+    size.forEach((s) => {
+      color.forEach(({ name: colorName, value: colorValue }) => {
+        // Lấy số lượng tồn kho cho từng sự kết hợp size và màu sắc từ state stock
+        const stockQuantity = stock[`${s}-${colorName}`];
 
-      mau_ma_san_phams.push({
-        mau_sac: colorName,
-        kich_co: s,
-        so_luong_ton_kho: stockQuantity,
+        mau_ma_san_phams.push({
+          mau_sac: colorName,
+          kich_co: s,
+          so_luong_ton_kho: stockQuantity,
+        });
       });
     });
-  });
 
     const productData = {
       ten_san_pham: name,
@@ -226,47 +277,37 @@ const AddProductPopup = ({ onClose }) => {
       thuong_hieu: brand,
       mo_ta: description,
       gia: price,
-      url_thumbnail: images.length > 0 ? images[0].preview : "", // Use the first image as the thumbnail
-      ten_danh_muc: category.value || 'Default', // You can default this if no category is selected
+      url_thumbnail: uploadedImages[0], // Use the first image as the thumbnail
+      ten_danh_muc: category.value,
       mau_ma_san_phams: mau_ma_san_phams,
-      hinh_anh_san_phams: images.map((image) => image.preview),
+      hinh_anh_san_phams: uploadedImages,
     };
     try {
-      const response = await axios.post('/add-product', productData);
-  
+      const response = await axios.post("/add-product", productData);
+
       console.log(response.data.message);
-      alert('Thêm sản phẩm thành công!');
-  
-      // Close the form or reset fields after successful submission
+      alert("Thêm sản phẩm thành công!");
       onClose();
     } catch (error) {
       console.error("Error adding product:", error);
       setHasError(true);
-      setErrorMessage('Có lỗi xảy ra khi thêm sản phẩm. Vui lòng thử lại.');
+      setErrorMessage("Có lỗi xảy ra khi thêm sản phẩm. Vui lòng thử lại.");
     }
-
-    // Nếu các điều kiện trên đều thỏa mãn
-    // setErrorMessage(null);
-    // setHasError(false);
-
-    // Xử lý lưu sản phẩm ở đây (nếu không có lỗi)
-    console.log("Form submitted successfully!");
   };
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50 ">
       <div className="bg-white p-6 rounded shadow-lg w-[70%] max-h-[90%] overflow-y-auto no-scrollbar">
-      
-      <div className="flex justify-between items-center mb-4">
-      <h2 className="text-lg font-semibold">Thêm sản phẩm mới</h2>
-      <button
-        type="button"
-        className="text-black border border-black px-2 py-2 rounded-full w-2 h-2 flex items-center justify-center"
-        onClick={onClose}
-      >
-        X
-      </button>
-    </div>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold">Thêm sản phẩm mới</h2>
+          <button
+            type="button"
+            className="text-black border border-black px-2 py-2 rounded-full w-2 h-2 flex items-center justify-center"
+            onClick={onClose}
+          >
+            X
+          </button>
+        </div>
         <form onSubmit={handleSubmit}>
           {/* Image Upload */}
           <div className="mb-4">
@@ -311,10 +352,6 @@ const AddProductPopup = ({ onClose }) => {
                   >
                     X
                   </button>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {image.file.name}
-                  </p>{" "}
-                  {/* Display image name */}
                 </div>
               ))}
             </div>

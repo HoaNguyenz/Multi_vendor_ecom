@@ -138,7 +138,7 @@ const Header = () => {
         )}
       </div>
 
-        {/* Search bar */}
+      {/* Search bar */}
       <div className="relative w-[60%] max-w-[600px]">
         <input
           type="text"
@@ -155,7 +155,7 @@ const Header = () => {
         />
       </div>
 
-        {/* User avatar/ Login Button */}
+      {/* User avatar/ Login Button */}
       <div className="flex items-center md:space-x-6 text-white">
         <Link to="/cart">
           <AiOutlineShoppingCart size={28} className="cursor-pointer" />
@@ -166,7 +166,15 @@ const Header = () => {
               onClick={() => setProfileMenu(!profileMenu)}
               className="focus:outline-none"
             >
-              <CgProfile size={28} className="cursor-pointer" />
+              {user.url_avatar ? (
+                <img
+                  src={user.url_avatar}
+                  alt="User Avatar"
+                  className="w-8 h-8 rounded-full cursor-pointer" // Tùy chỉnh kích thước và kiểu dáng
+                />
+              ) : (
+                <CgProfile size={28} className="cursor-pointer" />
+              )}
             </button>
           ) : (
             <Link to="/login">

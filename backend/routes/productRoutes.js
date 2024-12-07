@@ -30,21 +30,6 @@ router.post("/add-category", verifyToken, async (req, res) => {
 
   try {
     const pool = await sql.connect(); // Kết nối database
-
-    // Kiểm tra xem danh mục đã tồn tại chưa
-    // const checkCategory = await pool
-    // .request()
-    // .input("ten_danh_muc", sql.NVarChar, ten_danh_muc)
-    // .query`
-    //     SELECT Ten_danh_muc
-    //     FROM Danh_muc_hang
-    //     WHERE Ten_danh_muc COLLATE Latin1_General_CI_AS = @ten_danh_muc
-    // `;
-    // if (checkCategory.recordset.length > 0) {
-    // return res.status(400).json({ message: "Danh mục đã tồn tại." });
-    // }
-
-    // Thêm danh mục mới
     await pool.request().input("ten_danh_muc", sql.NVarChar, ten_danh_muc)
       .query`INSERT INTO Danh_muc_hang (Ten_danh_muc) VALUES (@ten_danh_muc)`;
 
@@ -129,6 +114,77 @@ router.post("/add-product", verifyToken, async (req, res) => {
   }
 });
 
+// router.post('/add-product', verifyToken, async (req, res) => {
+//   const {
+//     ten_san_pham,
+//     xuat_xu,
+//     thuong_hieu,
+//     mo_ta,
+//     gia,
+//     ten_danh_muc,
+//     mau_ma_san_phams,
+//     hinh_anh_san_phams,
+//   } = req.body;
+//   const Sdt = req.user.id;
+
+//   try {
+//     if (!hinh_anh_san_phams || hinh_anh_san_phams.length === 0) {
+//       return res.status(400).json({ message: 'Vui lòng tải lên ít nhất một hình ảnh.' });
+//     }
+
+//     // Kiểm tra người bán
+//     const existingSeller = await sql.query`
+//       SELECT * FROM Nguoi_ban_va_Cua_hang WHERE Sdt = ${Sdt}`;
+//     if (existingSeller.recordset.length === 0) {
+//       return res.status(400).json({ message: 'Bạn cần đăng ký trở thành người bán trước.' });
+//     }
+//     const Ma_cua_hang = existingSeller.recordset[0].Ma_cua_hang;
+
+//     // Upload hình ảnh lên Cloudinary
+//     const uploadedImages = [];
+//     for (const image of hinh_anh_san_phams) {
+//       const result = await cloudinary.uploader.upload(image, {
+//         folder: 'eCommerce_products', // Tên thư mục trên Cloudinary
+//         use_filename: true,
+//       });
+//       uploadedImages.push(result.secure_url); // Lưu URL ảnh đã upload
+//     }
+
+//     // Thêm sản phẩm vào cơ sở dữ liệu
+//     const result = await sql.query`
+//       INSERT INTO San_pham (Ma_san_pham, Ten_san_pham, Xuat_xu, Thuong_hieu, Mo_ta, Gia, Url_thumbnail, SL_da_ban, Ma_cua_hang, Ten_danh_muc)
+//       OUTPUT INSERTED.Ma_san_pham
+//       VALUES (${snowflake.generate()}, ${ten_san_pham}, ${xuat_xu}, ${thuong_hieu}, ${mo_ta}, ${gia}, ${uploadedImages[0]}, 0, ${Ma_cua_hang}, ${ten_danh_muc});
+//     `;
+//     const Ma_san_pham = result.recordset[0].Ma_san_pham;
+
+//     // Thêm thông tin size, màu sắc và tồn kho
+//     for (const { mau_sac, kich_co, so_luong_ton_kho } of mau_ma_san_phams) {
+//       await sql.query`
+//         INSERT INTO Mau_ma_san_pham (ID, Ma_san_pham, Mau_sac, Kich_co, So_luong_ton_kho)
+//         VALUES (${snowflake.generate()}, ${Ma_san_pham}, ${mau_sac}, ${kich_co}, ${so_luong_ton_kho});
+//       `;
+//     }
+
+//     // Lưu URL hình ảnh
+//     for (const url of uploadedImages) {
+//       await sql.query`
+//         INSERT INTO Hinh_anh_san_pham (Ma_san_pham, Url_hinh_anh)
+//         VALUES (${Ma_san_pham}, ${url});
+//       `;
+//     }
+
+//     res.status(201).json({ message: 'Thêm sản phẩm thành công.' });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       message: 'Thêm sản phẩm không thành công. Vui lòng thử lại sau.',
+//       error: error.message,
+//     });
+//   }
+// });
+
+
 //Route: Get Filter Option
 router.get("/filter-options", async (req, res) => {
   try {
@@ -210,7 +266,7 @@ router.get("/search-products", async (req, res) => {
     }
 
     // Thêm phần phân trang
-    query += ` ORDER BY sp.Ma_san_pham OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`;
+    // query += ` ORDER BY sp.Ma_san_pham OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`;
 
     // Thực hiện truy vấn
     const products = await sql.query(query);
@@ -330,6 +386,8 @@ router.get("/product-seller", verifyToken, async (req, res) => {
             sp.Gia,
             sp.SL_da_ban,
             sp.Ten_danh_muc,
+            sp.Ngay_tao,
+            sp.Url_thumbnail,
             ISNULL(SUM(msp.So_luong_ton_kho), 0) AS Ton_kho
         FROM San_pham sp
         LEFT JOIN Mau_ma_san_pham msp ON sp.Ma_san_pham = msp.Ma_san_pham
@@ -338,7 +396,7 @@ router.get("/product-seller", verifyToken, async (req, res) => {
           FROM Nguoi_ban_va_Cua_hang 
           WHERE Sdt = ${Sdt}
         )
-        GROUP BY sp.Ma_san_pham, sp.Ten_san_pham, sp.Gia, sp.SL_da_ban, sp.Ten_danh_muc
+        GROUP BY sp.Ma_san_pham, sp.Ten_san_pham, sp.Gia, sp.SL_da_ban, sp.Ten_danh_muc, sp.Ngay_tao, sp.Url_thumbnail
       `;
 
     const products = result.recordset;

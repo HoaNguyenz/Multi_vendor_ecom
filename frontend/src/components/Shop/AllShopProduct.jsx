@@ -34,15 +34,15 @@ const AllShopProduct = () => {
     {
       field: "Ma_san_pham",
       headerName: "Mã sản phẩm",
-      minWidth: 150,
+      minWidth: 80,
       flex: 0.8,
       headerAlign: "center",
     },
     {
       field: "Ten_san_pham",
       headerName: "Tên sản phẩm",
-      minWidth: 130,
-      flex: 1.2,
+      minWidth: 100,
+      flex: 1,
       headerAlign: "center",
     },
     {
@@ -71,6 +71,13 @@ const AllShopProduct = () => {
       field: "SL_da_ban",
       headerName: "Đã bán",
       type: "number",
+      minWidth: 80,
+      flex: 0.6,
+      headerAlign: "center",
+    },
+    {
+      field: "Ngay_tao",
+      headerName: "Ngày tạo",
       minWidth: 80,
       flex: 0.6,
       headerAlign: "center",

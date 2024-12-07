@@ -20,7 +20,7 @@ const ProductCard = ({ product }) => {
       <div className="relative">
         {/* Image */}
         <img
-          src={product.imageUrl || "https://via.placeholder.com/150"}
+          src={product.Url_thumbnail || "https://via.placeholder.com/150"}
           alt={product.Ten_san_pham}
           className="w-full h-[200px] object-cover rounded-lg"
         />

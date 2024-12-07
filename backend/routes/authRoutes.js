@@ -131,6 +131,7 @@ router.post("/login", async (req, res) => {
       la_nguoi_ban: user.La_nguoi_ban,
       sdt: user.Sdt,
       email: user.Email,
+      url_avatar: user.Url_avatar,
     });
   } catch (error) {
     res.status(500).json({ message: "Đăng nhập thất bại.", error });
@@ -202,6 +203,8 @@ router.get("/authenticate", async (req, res) => {
       username: user.Username,
       email: user.Email,
       la_nguoi_ban: user.La_nguoi_ban,
+      sdt: user.Sdt,
+      url_avatar: user.Url_avatar,
     });
   } catch (error) {
     // Lỗi token hết hạn hoặc không hợp lệ
@@ -280,7 +283,7 @@ router.post("/logout", (req, res) => {
   }
 
   res.clearCookie("token", {
-    httpOnly: true,
+    // httpOnly: true,
     secure: true,
     sameSite: "strict",
   });

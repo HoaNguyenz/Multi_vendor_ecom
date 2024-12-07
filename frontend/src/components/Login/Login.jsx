@@ -35,7 +35,7 @@ const Login = () => {
   
         if (response.status === 200) {
           // Lưu token và thông tin người dùng vào context
-          login({ token: response.data.token, email: email, username: response.data.username, la_nguoi_ban: response.data.la_nguoi_ban, sdt: response.data.sdt}); // Cập nhật thông tin người dùng trong context
+          login({ token: response.data.token, email: email, username: response.data.username, la_nguoi_ban: response.data.la_nguoi_ban, sdt: response.data.sdt, url_avatar: response.data.url_avatar }); // Cập nhật thông tin người dùng trong context
   
           // Điều hướng người dùng
           if (submitter.name === "normalLogin") {

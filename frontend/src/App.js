@@ -9,13 +9,12 @@ import { AuthProvider } from "./context/AuthContext";
 import UserRoute from './context/userRoute';
 import SellerRoute from './context/sellerRoute';
 
-
 const App = () => {
   return (
     <AuthProvider>
     <BrowserRouter>
       <Routes>
-      <Route path='/login' element={<LoginPage />} />
+          <Route path='/login' element={<LoginPage />} />
           <Route path='/forgot-password' element={<ForgotPasswordPage />} />
           <Route path='/reset-password' element={<ResetPasswordPage />} />
           <Route path='/sign-up' element={<SignupPage />} />

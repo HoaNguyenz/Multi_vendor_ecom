@@ -12,10 +12,10 @@ require("dotenv").config();
 
 // Route: Get user information
 router.get("/get-user-info/:username", async (req, res) => {
-    const { username } = req.params;
-  
-    try {
-      const result = await sql.query`
+  const { username } = req.params;
+
+  try {
+    const result = await sql.query`
         SELECT 
           nd.Sdt,
           nd.Email,
@@ -33,20 +33,22 @@ router.get("/get-user-info/:username", async (req, res) => {
         LEFT JOIN Dia_chi AS dc ON nd.Sdt = dc.Sdt
         WHERE nd.Username = ${username}
       `;
-  
-      if (result.recordset.length > 0) {
-        res.status(200).json(result.recordset); // Trả về thông tin người dùng và địa chỉ
-      } else {
-        res.status(404).json({ message: "Người dùng không tồn tại." });
-      }
-    } catch (error) {
-      res.status(500).json({ message: "Lỗi khi lấy thông tin người dùng", error });
+
+    if (result.recordset.length > 0) {
+      res.status(200).json(result.recordset); // Trả về thông tin người dùng và địa chỉ
+    } else {
+      res.status(404).json({ message: "Người dùng không tồn tại." });
     }
-  });
-  
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Lỗi khi lấy thông tin người dùng", error });
+  }
+});
+
 // Route: Update User Information
 router.put("/update-user", async (req, res) => {
-  const { sdt, ho_va_ten, gioi_tinh, ngay_sinh } = req.body;
+  const { sdt, ho_va_ten, gioi_tinh, ngay_sinh, url_avatar } = req.body;
 
   try {
     // Update user information in the Nguoi_dung_va_Gio_hang table
@@ -55,14 +57,19 @@ router.put("/update-user", async (req, res) => {
       SET 
         Ho_va_ten = ${ho_va_ten}, 
         Gioi_tinh = ${gioi_tinh}, 
-        Ngay_sinh = ${ngay_sinh}
+        Ngay_sinh = ${ngay_sinh},
+        Url_avatar = ${url_avatar}
       WHERE Sdt = ${sdt}
     `;
 
-    res.status(200).json({ message: "Thông tin người dùng đã được cập nhật thành công." });
+    res
+      .status(200)
+      .json({ message: "Thông tin người dùng đã được cập nhật thành công." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Cập nhật thông tin người dùng thất bại", error });
+    res
+      .status(500)
+      .json({ message: "Cập nhật thông tin người dùng thất bại", error });
   }
 });
 
