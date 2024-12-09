@@ -73,6 +73,7 @@ router.get("/seller-info", verifyToken, async (req, res) => {
     const result = await sql.query`SELECT *
   FROM (SELECT * FROM Nguoi_ban_va_Cua_hang WHERE Sdt = ${Sdt}) AS T JOIN Dia_chi ON Dia_chi = ID`;
     const seller = result.recordset[0];
+    console.log(seller);
 
     if (!seller) {
       return res.status(404).json({ message: "Người bán không tồn tại." });
@@ -86,5 +87,35 @@ router.get("/seller-info", verifyToken, async (req, res) => {
     });
   }
 });
+
+// Route: Update Seller Info
+router.put("/update-shop", verifyToken, async (req, res) => {
+  const Sdt = req.user.id;
+  const { Ten, Mo_ta, Url_logo} = req.body;
+
+  try {
+    // Kiểm tra xem shop có tồn tại không
+    const shopResult = await sql.query`SELECT Ma_cua_hang FROM Nguoi_ban_va_Cua_hang WHERE Sdt = ${Sdt}`;
+    const shop = shopResult.recordset[0];
+
+    if (!shop) {
+      return res.status(404).json({ message: "Cửa hàng không tồn tại." });
+    }
+
+    // Cập nhật thông tin cửa hàng
+    await sql.query`UPDATE Nguoi_ban_va_Cua_hang 
+                    SET Ten = ${Ten}, Url_logo = ${Url_logo}, Mo_ta = ${Mo_ta}
+                    WHERE Sdt = ${Sdt}`;
+
+    res.status(200).json({ message: "Cập nhật thông tin cửa hàng thành công." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Lỗi khi cập nhật thông tin cửa hàng.",
+      error: error.message,
+    });
+  }
+});
+
 
 module.exports = router;

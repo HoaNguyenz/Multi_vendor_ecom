@@ -37,8 +37,11 @@ const Header = () => {
               }}
               className="focus:outline-none"
             >
-              <span className="text-white font-semibold">{user.username}</span>{" "}
-              {/* Hiển thị username */}
+              <img
+                  src={user.url_avatar}
+                  alt="User Avatar"
+                  className="w-8 h-8 rounded-full cursor-pointer"
+                />
             </button>
           ) : (
             // Nếu người dùng chưa đăng nhập, hiển thị nút "Đăng nhập"

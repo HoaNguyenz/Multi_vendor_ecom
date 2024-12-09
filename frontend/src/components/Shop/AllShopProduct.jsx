@@ -1,14 +1,27 @@
 import { React, useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { RiDeleteBin6Line } from "react-icons/ri";
+import { RiDeleteBin6Line, RiEdit2Line } from "react-icons/ri";
 import { Button } from "@mui/material";
 import AddProductPopup from "../Shop/Popup/AddProductPopup.jsx";
 import axios from "../../context/configAxios.js";
+import EditProductPopup from "./Popup/EditProductPopup.jsx";
 
 const AllShopProduct = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [products, setProducts] = useState([]); // State lưu danh sách sản phẩm
   const [loading, setLoading] = useState(true); // State để hiển thị loading
+  const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null); // Lưu sản phẩm đang chỉnh sửa
+
+  const openEditPopup = (product) => {
+    setEditingProduct(product);
+    setIsEditPopupOpen(true);
+  };
+
+  const closeEditPopup = () => {
+    setEditingProduct(null);
+    setIsEditPopupOpen(false);
+  };
 
   // Hàm mở/đóng popup thêm sản phẩm
   const openPopup = () => setIsPopupOpen(true);
@@ -17,7 +30,7 @@ const AllShopProduct = () => {
   // Hàm lấy danh sách sản phẩm từ API
   const fetchProducts = async () => {
     try {
-      const response = await axios.get("/product-seller")
+      const response = await axios.get("/product-seller");
       setProducts(response.data); // Lưu danh sách sản phẩm vào state
       setLoading(false);
     } catch (error) {
@@ -83,6 +96,19 @@ const AllShopProduct = () => {
       headerAlign: "center",
     },
     {
+      field: "edit",
+      headerName: "Sửa",
+      minWidth: 50,
+      flex: 0.4,
+      headerAlign: "center",
+      sortable: false,
+      renderCell: (params) => (
+        <Button onClick={() => openEditPopup(params.row)}>
+          <RiEdit2Line size={20} />
+        </Button>
+      ),
+    },
+    {
       field: "delete",
       headerName: "Xoá",
       minWidth: 50,
@@ -112,16 +138,31 @@ const AllShopProduct = () => {
         </Button>
       </div>
       <DataGrid
-          rows={products.map((item) => ({
-            id: item.Ma_san_pham, // DataGrid yêu cầu mỗi dòng có field `id`
-            ...item,
-          }))}
-          columns={columns}
-          pageSize={10}
-          autoHeight
-          disableSelectionOnClick
-        />
+        rows={products.map((item) => ({
+          id: item.Ma_san_pham, // DataGrid yêu cầu mỗi dòng có field `id`
+          ...item,
+        }))}
+        columns={columns}
+        pageSize={10}
+        autoHeight
+        disableSelectionOnClick
+      />
       {isPopupOpen && <AddProductPopup onClose={closePopup} />}
+      {isEditPopupOpen && editingProduct && (
+        <EditProductPopup
+          product={editingProduct}
+          onClose={closeEditPopup}
+          onUpdate={(updatedProduct) => {
+            setProducts((prev) =>
+              prev.map((item) =>
+                item.Ma_san_pham === updatedProduct.Ma_san_pham
+                  ? updatedProduct
+                  : item
+              )
+            );
+          }}
+        />
+      )}
     </div>
   );
 };

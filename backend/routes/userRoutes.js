@@ -49,6 +49,7 @@ router.get("/get-user-info/:username", async (req, res) => {
 // Route: Update User Information
 router.put("/update-user", async (req, res) => {
   const { sdt, ho_va_ten, gioi_tinh, ngay_sinh, url_avatar } = req.body;
+  console.log(gioi_tinh);
 
   try {
     // Update user information in the Nguoi_dung_va_Gio_hang table

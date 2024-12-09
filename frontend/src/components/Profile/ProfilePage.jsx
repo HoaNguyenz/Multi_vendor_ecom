@@ -14,7 +14,7 @@ const ProfilePage = () => {
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toISOString().split('T')[0]; // Lấy phần yyyy-MM-dd
+    return date.toISOString().split("T")[0]; // Lấy phần yyyy-MM-dd
   };
   const fetchUserInfo = async () => {
     if (!user || !user.username) return;
@@ -54,7 +54,9 @@ const ProfilePage = () => {
       <Header />
 
       <div className="w-[90%] md:w-[70%] lg:w-[50%] bg-white mt-10 p-6 rounded-lg shadow-lg mx-auto">
-        <h1 className="text-2xl font-bold mb-2">Hồ sơ của {userInfo.Username}</h1>
+        <h1 className="text-2xl font-bold mb-2">
+          Hồ sơ của {userInfo.Username}
+        </h1>
         <p className="text-gray-500 mb-6">Thông tin cá nhân và địa chỉ</p>
 
         <div className="space-y-4">
@@ -76,15 +78,25 @@ const ProfilePage = () => {
             </div>
             <div className="mb-4">
               <p className="text-gray-500 text-sm">Họ và tên:</p>
-              <p className="text-gray-900 font-medium">{userInfo.Ho_va_ten || "Chưa cập nhật"}</p>
+              <p className="text-gray-900 font-medium">
+                {userInfo.Ho_va_ten || "Chưa cập nhật"}
+              </p>
             </div>
             <div className="mb-4">
               <p className="text-gray-500 text-sm">Giới tính:</p>
-              <p className="text-gray-900 font-medium">{userInfo.Gioi_tinh || "Chưa cập nhật"}</p>
+              <p className="text-gray-900 font-medium">
+                {userInfo.Gioi_tinh === "M"
+                  ? "Nam"
+                  : userInfo.Gioi_tinh === "F"
+                  ? "Nữ"
+                  : "Chưa cập nhật"}
+              </p>
             </div>
             <div className="mb-4">
               <p className="text-gray-500 text-sm">Ngày sinh:</p>
-              <p className="text-gray-900 font-medium">{formatDate(userInfo.Ngay_sinh) || "Chưa cập nhật"}</p>
+              <p className="text-gray-900 font-medium">
+                {formatDate(userInfo.Ngay_sinh) || "Chưa cập nhật"}
+              </p>
             </div>
           </div>
         </div>
@@ -117,10 +129,10 @@ const ProfilePage = () => {
 
       {/* Popup Update Profile */}
       <UpdateProfilePopup
-      isOpen={isPopupOpen}
-      onClose={() => setIsPopupOpen(false)}
-      userInfo={userInfo}
-      onUpdate={handleUpdate}
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        userInfo={userInfo}
+        onUpdate={handleUpdate}
       ></UpdateProfilePopup>
     </div>
   );

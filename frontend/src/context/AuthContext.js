@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }) => {
     const authenticateUser = async () => {
       try {
         const response = await axios.get("/authenticate");
-        console.log(response.data);
         setUser({
           username: response.data.username,
           email: response.data.email,

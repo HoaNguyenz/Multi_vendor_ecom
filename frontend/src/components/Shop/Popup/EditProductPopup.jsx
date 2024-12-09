@@ -1,16 +1,21 @@
-import { React, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "../../../context/configAxios";
 import Select from "react-select";
 import { ChromePicker } from "react-color";
-import axios from "../../../context/configAxios";
 
-const AddProductPopup = ({ onClose }) => {
+const EditProductPopup = ({ product, onClose }) => {
   const [images, setImages] = useState([]);
-  const [imageNames, setImageNames] = useState([]);
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [origin, setOrigin] = useState("");
-  const [brand, setBrand] = useState("");
-  const [price, setPrice] = useState("");
+  const [name, setName] = useState(product?.Ten_san_pham || "");
+  const [description, setDescription] = useState(product?.Mo_ta || "");
+  const [origin, setOrigin] = useState(product?.Xuat_xu || "");
+  const [brand, setBrand] = useState(product?.Thuong_hieu || "");
+  const [price, setPrice] = useState(product?.Gia || "");
+  const [category, setCategory] = useState(product?.Ten_danh_muc || "");
+  const [categories, setCategories] = useState([]);
+  const [newCategory, setNewCategory] = useState("");
+  const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
+  const [categoryUpdated, setCategoryUpdated] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   const [size, setSize] = useState([]);
   const [customSize, setCustomSize] = useState("");
   const [availableSizes, setAvailableSizes] = useState([
@@ -26,82 +31,43 @@ const AddProductPopup = ({ onClose }) => {
   const [selectedColor, setSelectedColor] = useState("");
   const [colorName, setColorName] = useState("");
   const [stock, setStock] = useState({});
-  const [category, setCategory] = useState(null);
-  const [newCategory, setNewCategory] = useState("");
-  const [isAddingNewCategory, setIsAddingNewCategory] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [errorMessage, setErrorMessage] = useState(null);
   const [hasError, setHasError] = useState(false);
   const [imageError, setImageError] = useState(null);
   const [priceError, setPriceError] = useState(null);
   const [stockError, setStockError] = useState(null);
 
-  // Tải danh sách danh mục khi component mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await axios.get("/get-categories"); // Gọi API để lấy danh sách category
-        setCategories(response.data); // Lưu danh sách category
+        const response = await axios.get("/get-categories");
+        setCategories(response.data);
       } catch (error) {
         console.error("Error fetching categories", error);
-        setErrorMessage("Có lỗi khi tải danh mục. Vui lòng thử lại.");
       }
     };
     fetchCategories();
-  }, []);
+  }, [product]);
 
-  const categoryOptions = [
-    ...categories.map((cat) => ({ value: cat, label: cat })),
-    { value: "add_new", label: "+ Thêm danh mục mới" },
-  ];
-
-  const handleImageUpload = async (file) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "eCommercePreset");
-  
-    try {
-      const response = await axios.post(`https://api.cloudinary.com/v1_1/dlihdjok9/image/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: "",
-      });
-      return response.data.secure_url;
-    } catch (error) {
-      console.error("Upload failed", error);
-      throw error;
+  // useEffect(() => {
+  //   if (categories.length > 0 && product.Ten_danh_muc) {
+  //     const currentCategory = categories.find(
+  //       (cat) => cat.toLowerCase() === product.Ten_danh_muc.toLowerCase()
+  //     );
+  //     if (currentCategory) {
+  //       setCategory({ value: currentCategory, label: currentCategory });
+  //     }
+  //   }
+  // }, [categories, product.Ten_danh_muc]);
+  useEffect(() => {
+    if (categories.length > 0 && product.Ten_danh_muc && !categoryUpdated) {
+      const currentCategory = categories.find(
+        (cat) => cat.toLowerCase() === product.Ten_danh_muc.toLowerCase()
+      );
+      if (currentCategory) {
+        setCategory({ value: currentCategory, label: currentCategory });
+      }
     }
-  };
-  
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-  
-    if (images.length + files.length > 7) {
-      setImageError("Bạn chỉ có thể tải lên tối đa 7 hình ảnh.");
-      return;
-    }
-  
-    const newImages = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file), // Lưu preview ảnh cho hiển thị
-    }));
-  
-    setImages((prevImages) => [...prevImages, ...newImages]);
-  };
-  
-  const handleImageDelete = (index) => {
-    const updatedImages = images.filter((_, i) => i !== index);
-    setImages(updatedImages);
-  }; 
-
-  const handleCategoryChange = (selectedOption) => {
-    if (selectedOption.value === "add_new") {
-      setIsAddingNewCategory(true);
-      setCategory(null);
-    } else {
-      setIsAddingNewCategory(false);
-      setCategory(selectedOption);
-    }
-  };
+  }, [categories, product.Ten_danh_muc, categoryUpdated]);
 
   const handleAddCategory = async () => {
     if (newCategory) {
@@ -113,19 +79,20 @@ const AddProductPopup = ({ onClose }) => {
       if (existingCategory) {
         // Nếu danh mục đã tồn tại, chọn danh mục đó
         setCategory({ value: existingCategory, label: existingCategory });
+        setCategoryUpdated(true); // Mark category as updated
         setNewCategory(""); // Clear input field
         setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
       } else {
-        // Nếu danh mục chưa tồn tại, thêm mới vào backend
         try {
           const response = await axios.post("/add-category", {
             ten_danh_muc: newCategory,
           });
           if (response.status === 201) {
-            // Cập nhật danh sách category và chọn danh mục mới
-            setCategories([...categories, newCategory]); // Cập nhật danh sách category
+            const updatedCategories = [...categories, newCategory];
+            setCategories(updatedCategories);
             setCategory({ value: newCategory, label: newCategory }); // Chọn danh mục mới
-            setNewCategory(""); // Clear input field
+            setCategoryUpdated(true); // Mark category as updated
+            setNewCategory("");
             setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
           }
         } catch (error) {
@@ -135,6 +102,32 @@ const AddProductPopup = ({ onClose }) => {
       }
     }
   };
+
+  // const handleCategoryChange = (selectedOption) => {
+  //   if (selectedOption.value === "add_new") {
+  //     setIsAddingNewCategory(true);
+  //     setCategory(null);
+  //   } else {
+  //     setIsAddingNewCategory(false);
+  //     setCategory(selectedOption);
+  //   }
+  // };
+  const handleCategoryChange = (selectedOption) => {
+    if (selectedOption.value === "add_new") {
+      setIsAddingNewCategory(true);
+      setCategory(null);
+      setCategoryUpdated(false);
+    } else {
+      setIsAddingNewCategory(false);
+      setCategory(selectedOption);
+      setCategoryUpdated(true);
+    }
+  };
+
+  const categoryOptions = [
+    ...categories.map((cat) => ({ value: cat, label: cat })),
+    { value: "add_new", label: "+ Thêm danh mục mới" },
+  ];
 
   const handlePriceChange = (price) => {
     if (price < 0) {
@@ -197,6 +190,78 @@ const AddProductPopup = ({ onClose }) => {
     setStock(updatedStock);
   };
 
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        const response = await axios.get(`/product-detail/${product.id}`);
+        const productData = response.data;
+
+        // Gắn dữ liệu vào state
+        setName(productData.Ten_san_pham);
+        setDescription(productData.Mo_ta);
+        setOrigin(productData.Xuat_xu);
+        setBrand(productData.Thuong_hieu);
+        setPrice(productData.Gia);
+        setCategory(productData.Ten_danh_muc);
+
+        // Xử lý hình ảnh
+        const formattedImages = productData.hinh_anh_san_phams.map((url) => ({
+          file: null,
+          preview: url,
+          img_url: url,
+        }));
+        setImages(formattedImages);
+        // Xử lý thông tin size
+        const sizes = Array.from(
+          new Set(productData.mau_ma_san_phams.map((v) => v.kich_co))
+        );
+        setSize(sizes);
+
+        // Xử lý thông tin màu sắc
+        const colors = Array.from(
+          new Set(productData.mau_ma_san_phams.map((v) => v.mau_sac))
+        ).map((color) => ({
+          name: color,
+          value: color, // Hoặc mã hex màu nếu cần
+        }));
+        setColor(colors);
+
+        // Xử lý tồn kho
+        const stockData = {};
+        productData.mau_ma_san_phams.forEach((mau_ma_san_phams) => {
+          const key = `${mau_ma_san_phams.kich_co}-${mau_ma_san_phams.mau_sac}`;
+          stockData[key] = mau_ma_san_phams.so_luong_ton_kho;
+        });
+        setStock(stockData);
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+        setErrorMessage("Không thể tải thông tin sản phẩm.");
+      }
+    };
+
+    fetchProductDetails();
+  }, [product.id]);
+
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (images.length + files.length > 7) {
+      setImageError("Bạn chỉ có thể tải lên tối đa 7 hình ảnh.");
+      return;
+    }
+
+    const newImages = files.map((file) => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setImages((prev) => [...prev, ...newImages]);
+  };
+
+  const handleImageDelete = (index) => {
+    const updatedImages = images.filter((_, i) => i !== index);
+    setImages(updatedImages);
+    console.log(updatedImages)
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -219,55 +284,71 @@ const AddProductPopup = ({ onClose }) => {
       return;
     }
 
-    // Upload ảnh
-    const uploadedImages = [];
-    for (const image of images) {
-      try {
-        const imageUrl = await handleImageUpload(image.file); // Thực hiện upload ảnh khi submit
-        uploadedImages.push(imageUrl);
-      } catch (error) {
-        setImageError("Lỗi khi upload ảnh.");
-        return;
+    try {
+      // Upload new images
+      // const uploadedImages = [...images.map((img) => img.preview)];
+      const uploadedImages = [];
+      for (const image of images) {
+        if (image.file) {
+          // Upload ảnh nếu có file
+          const formData = new FormData();
+          formData.append("file", image.file);
+          formData.append("upload_preset", "eCommercePreset");
+  
+          const response = await axios.post(
+            `https://api.cloudinary.com/v1_1/dlihdjok9/image/upload`,
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+              withCredentials: ""
+            }
+          );
+          // Thêm URL ảnh đã upload vào mảng
+          uploadedImages.push(response.data.secure_url);
+        } else if (image.img_url) {
+          // Chỉ thêm ảnh cũ khi img_url không null hoặc undefined
+          uploadedImages.push(image.img_url);
+        }
       }
-    }
 
-    // Tạo mảng mau_ma_san_phams từ dữ liệu size và color
-    const mau_ma_san_phams = [];
+      const mau_ma_san_phams = [];
 
-    size.forEach((s) => {
-      color.forEach(({ name: colorName, value: colorValue }) => {
-        // Lấy số lượng tồn kho cho từng sự kết hợp size và màu sắc từ state stock
-        const stockQuantity = stock[`${s}-${colorName}`];
+      size.forEach((s) => {
+        color.forEach(({ name: colorName, value: colorValue }) => {
+          // Lấy số lượng tồn kho cho từng sự kết hợp size và màu sắc từ state stock
+          const stockQuantity = stock[`${s}-${colorName}`];
 
-        mau_ma_san_phams.push({
-          mau_sac: colorName,
-          kich_co: s,
-          so_luong_ton_kho: stockQuantity,
+          mau_ma_san_phams.push({
+            mau_sac: colorName,
+            kich_co: s,
+            so_luong_ton_kho: stockQuantity,
+          });
         });
       });
-    });
 
-    const productData = {
-      ten_san_pham: name,
-      xuat_xu: origin,
-      thuong_hieu: brand,
-      mo_ta: description,
-      gia: price,
-      url_thumbnail: uploadedImages[0], // Use the first image as the thumbnail
-      ten_danh_muc: category.value,
-      mau_ma_san_phams: mau_ma_san_phams,
-      hinh_anh_san_phams: uploadedImages,
-    };
-    try {
-      const response = await axios.post("/add-product", productData);
-
-      console.log(response.data.message);
-      alert("Thêm sản phẩm thành công!");
+      // Prepare product data
+      const updatedProduct = {
+        ten_san_pham: name,
+        xuat_xu: origin,
+        thuong_hieu: brand,
+        mo_ta: description,
+        gia: price,
+        url_thumbnail: uploadedImages[0], // Use the first image as the thumbnail
+        ten_danh_muc: category.value,
+        mau_ma_san_phams: mau_ma_san_phams,
+        hinh_anh_san_phams: uploadedImages,
+      };
+      console.log(uploadedImages[0])
+      // Send update request
+      const response = await axios.put(
+        `/edit-product/${product.id}`,
+        updatedProduct
+      );
+      alert("Cập nhật sản phẩm thành công!");
       onClose();
     } catch (error) {
-      console.error("Error adding product:", error);
-      setHasError(true);
-      setErrorMessage("Có lỗi xảy ra khi thêm sản phẩm. Vui lòng thử lại.");
+      console.error("Error updating product:", error);
+      setErrorMessage("Có lỗi xảy ra. Vui lòng thử lại.");
     }
   };
 
@@ -275,7 +356,7 @@ const AddProductPopup = ({ onClose }) => {
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center z-50 ">
       <div className="bg-white p-6 rounded shadow-lg w-[70%] max-h-[90%] overflow-y-auto no-scrollbar">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Thêm sản phẩm mới</h2>
+          <h2 className="text-lg font-semibold">Chỉnh sửa sản phẩm</h2>
           <button
             type="button"
             className="text-black border border-black px-2 py-2 rounded-full w-2 h-2 flex items-center justify-center"
@@ -285,7 +366,7 @@ const AddProductPopup = ({ onClose }) => {
           </button>
         </div>
         <form onSubmit={handleSubmit}>
-          {/* Image Upload */}
+          {/* Image */}
           <div className="mb-4">
             <label className="block text-sm font-medium">
               Hình ảnh sản phẩm <span className="text-red-500">*</span>
@@ -332,23 +413,20 @@ const AddProductPopup = ({ onClose }) => {
               ))}
             </div>
           </div>
-
-          {/* Tên sản phẩm */}
+          {/* Product name */}
           <div className="mb-4">
             <label className="block text-sm font-medium">
               Tên sản phẩm <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              name="name"
               value={name}
-              required
-              placeholder="Nhập vào tên sản phẩm"
               onChange={(e) => setName(e.target.value)}
               className="w-full border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
+              required
             />
           </div>
-          {/* Phân loại */}
+          {/* Product category */}
           <div className="mb-4">
             <label className="block text-sm font-medium">
               Phân loại <span className="text-red-500">*</span>
@@ -358,7 +436,6 @@ const AddProductPopup = ({ onClose }) => {
               value={category}
               required
               onChange={handleCategoryChange}
-              placeholder="Chọn phân loại"
               className="w-full"
             />
             {isAddingNewCategory && (
@@ -380,37 +457,33 @@ const AddProductPopup = ({ onClose }) => {
               </div>
             )}
           </div>
-          {/* Xuất xứ */}
+          {/* Product origin */}
           <div className="mb-4">
             <label className="block text-sm font-medium">
               Xuất xứ <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              name="origin"
               value={origin}
-              required
-              placeholder="Nhập vào nơi sản xuất"
               onChange={(e) => setOrigin(e.target.value)}
               className="w-full border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
+              required
             />
           </div>
-          {/* Thương hiệu */}
+          {/* Product brand */}
           <div className="mb-4">
             <label className="block text-sm font-medium">
               Thương hiệu <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              name="brand"
               value={brand}
-              required
-              placeholder="Nhập vào thương hiệu của sản phẩm"
               onChange={(e) => setBrand(e.target.value)}
               className="w-full border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
+              required
             />
           </div>
-          {/* Giá */}
+          {/* Product price */}
           <div className="mb-4">
             <label className="block text-sm font-medium">
               Đơn giá (VNĐ) <span className="text-red-500">*</span>
@@ -429,7 +502,6 @@ const AddProductPopup = ({ onClose }) => {
               <p className="text-red-500 text-sm mt-2">{priceError}</p>
             )}
           </div>
-
           {/* Size */}
           <div className="mb-4">
             <label className="block text-sm font-medium mb-2">
@@ -558,46 +630,16 @@ const AddProductPopup = ({ onClose }) => {
               )}
             </div>
           </div>
-
-          {/* Mô tả */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium">
-              Mô tả <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="description"
-              value={description}
-              required
-              placeholder="Mô tả ngắn về sản phẩm của bạn"
-              onChange={(e) => setDescription(e.target.value)}
-              className="custom-input w-full border border-gray-300 rounded px-2 py-1 focus:ring-blue-500 focus:border-blue-500"
-              maxLength={300} // Set max length
-            />
-            <p className="text-gray-500 text-sm mt-1">
-              {description.length}/300
-            </p>
-          </div>
-
-          <div className="mt-4 flex justify-center gap-4">
-            <button
-              type="submit"
-              className="bg-blue-500 text-white px-4 py-2 rounded "
-            >
-              Lưu
-            </button>
-            <button
-              type="button"
-              className="ml-2 text-red-500 border border-red-500 px-4 py-2 rounded"
-              onClick={onClose}
-            >
-              Huỷ
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Lưu thay đổi
+          </button>
         </form>
       </div>
     </div>
   );
 };
 
-export default AddProductPopup;
+export default EditProductPopup;

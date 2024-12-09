@@ -12,7 +12,7 @@ const ShopInfoPage = () => {
       {/* Main Content */}
       <div className="flex w-full">
         {/* Sidebar (bên trái) */}
-        <div className="w-[60px] 800px:w-[240px]">
+        <div className='w-[60px] 1100px:w-[240px]'>
           <DashboardSidebar active={4} />
         </div>
 

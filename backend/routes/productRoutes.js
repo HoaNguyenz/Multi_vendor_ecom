@@ -415,4 +415,68 @@ router.get("/product-seller", verifyToken, async (req, res) => {
   }
 });
 
+// Route: Update san pham
+router.put("/edit-product/:id", verifyToken, async (req, res) => {
+  const Ma_san_pham = req.params.id;
+  const {
+    ten_san_pham,
+    xuat_xu,
+    thuong_hieu,
+    mo_ta,
+    gia,
+    url_thumbnail,
+    ten_danh_muc,
+    mau_ma_san_phams,
+    hinh_anh_san_phams,
+  } = req.body;
+  try {
+    // Cập nhật thông tin sản phẩm
+    await sql.query`
+      UPDATE San_pham
+      SET 
+        Ten_san_pham = ${ten_san_pham},
+        Xuat_xu = ${xuat_xu},
+        Thuong_hieu = ${thuong_hieu},
+        Mo_ta = ${mo_ta},
+        Gia = ${gia},
+        Ten_danh_muc = ${ten_danh_muc},
+        Url_thumbnail = ${url_thumbnail}
+      WHERE Ma_san_pham = ${Ma_san_pham}
+    `;
+
+    // Xóa mẫu mã cũ
+    await sql.query`
+      DELETE FROM Mau_ma_san_pham
+      WHERE Ma_san_pham = ${Ma_san_pham}
+    `;
+
+    for (let i = 0; i < mau_ma_san_phams.length; i++) {
+      const { mau_sac, kich_co, so_luong_ton_kho } = mau_ma_san_phams[i];
+      await sql.query`
+                  INSERT INTO Mau_ma_san_pham (ID, Ma_san_pham, Mau_sac, Kich_co, So_luong_ton_kho)
+                  VALUES (${snowflake.generate()}, ${Ma_san_pham}, ${mau_sac}, ${kich_co}, ${so_luong_ton_kho});
+              `;
+    }
+
+    // Cập nhật hình ảnh
+    await sql.query`
+      DELETE FROM Hinh_anh_san_pham
+      WHERE Ma_san_pham = ${Ma_san_pham}
+    `;
+    for (let i = 0; i < hinh_anh_san_phams.length; i++) {
+      const url_hinh_anh = hinh_anh_san_phams[i];
+      await sql.query`
+                  INSERT INTO Hinh_anh_san_pham (Ma_san_pham, Url_hinh_anh)
+                  VALUES (${Ma_san_pham}, ${url_hinh_anh});
+              `;
+    }
+
+    res.status(200).json({ message: "Cập nhật sản phẩm thành công." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Cập nhật sản phẩm không thành công." });
+  }
+});
+
+
 module.exports = router;

@@ -17,7 +17,7 @@ const DashboardSidebar = ({ active }) => {
           className="w-full flex items-center"
         >
           <MdOutlineQueryStats size={25} color="black"></MdOutlineQueryStats>
-          <h5 className="hidden 800px:block pl-2 text-[18px] font-[450]">Thống kê</h5>
+          <h5 className="hidden 1100px:block pl-2 text-[18px] font-[450]">Thống kê</h5>
         </Link>
       </div>
 
@@ -31,7 +31,7 @@ const DashboardSidebar = ({ active }) => {
           className="w-full flex items-center"
         >
           <BsBoxSeam size={25} color="black"></BsBoxSeam>
-          <h5 className="hidden 800px:block pl-2 text-[18px] font-[450]">Quản lí đơn hàng</h5>
+          <h5 className="hidden 1100px:block pl-2 text-[18px] font-[450]">Quản lí đơn hàng</h5>
         </Link>
       </div>
 
@@ -45,7 +45,7 @@ const DashboardSidebar = ({ active }) => {
           className="w-full flex items-center"
         >
           <IoShirtOutline size={25} color="black"></IoShirtOutline>
-          <h5 className="hidden 800px:block pl-2 text-[18px] font-[450]">Quản lí sản phẩm</h5>
+          <h5 className="hidden 1100px:block pl-2 text-[18px] font-[450]">Quản lí sản phẩm</h5>
         </Link>
       </div>
 
@@ -59,7 +59,7 @@ const DashboardSidebar = ({ active }) => {
           className="w-full flex items-center"
         >
           <BsShop size={25} color="black"></BsShop>
-          <h5 className="hidden 800px:block pl-2 text-[18px] font-[450]">Thông tin cửa hàng</h5>
+          <h5 className="hidden 1100px:block pl-2 text-[18px] font-[450]">Thông tin cửa hàng</h5>
         </Link>
       </div>
     </div>

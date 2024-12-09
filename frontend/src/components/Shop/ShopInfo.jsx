@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import axios from "../../context/configAxios"; // Thay đổi theo cấu trúc project của bạn
 import styles from "../../styles/styles"; // Thay đổi theo file styles của bạn
 import ProductCard from "../Product/ProductCard";
+import EditShopInfo from "./Popup/EditShopInfo";
 
 const ShopInfo = ({ isOwner }) => {
   const [data, setData] = useState({});
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProductLoading, setIsProductLoading] = useState(true);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
     // Fetch shop data
@@ -46,7 +48,7 @@ const ShopInfo = ({ isOwner }) => {
       <div className="w-[30%] bg-white p-5 rounded-lg shadow-md">
         <div className="flex justify-center mb-5">
           <img
-            src={data.avatar?.url || "https://via.placeholder.com/150"} // Avatar fallback
+            src={data.Url_logo || "https://via.placeholder.com/150"}
             alt="Shop Avatar"
             className="w-[15vh] h-[15vh] object-cover rounded-full"
           />
@@ -77,26 +79,25 @@ const ShopInfo = ({ isOwner }) => {
             <p className="text-gray-700">{data.ratings || "0/5"}</p>
           </div>
           <div>
-            <h5 className="font-bold">Joined On</h5>
+            <h5 className="font-bold">Mô tả</h5>
             <p className="text-gray-700">
-              {data.createdAt ? data.createdAt.slice(0, 10) : "N/A"}
+            <p className="text-gray-700">{data.Mo_ta}</p>
             </p>
           </div>
         </div>
-        {isOwner && (
-          <div className="mt-5">
-            <Link to="/settings">
-              <button className={`${styles.button} w-full py-2 text-white`}>
-                Edit Shop
-              </button>
-            </Link>
-          </div>
-        )}
+        <button
+          onClick={() => setIsPopupOpen(true)}
+          className={`${styles.button} w-full py-2 text-white`}
+        >
+          Edit Shop
+        </button>
       </div>
 
       {/* Product List */}
       <div className="w-[70%] bg-gray-100 ml-5 p-5 rounded-lg shadow-md">
-        <h2 className="text-lg font-bold mb-4">Các sản phẩm hiện có trong cửa hàng</h2>
+        <h2 className="text-lg font-bold mb-4">
+          Các sản phẩm hiện có trong cửa hàng
+        </h2>
         {products.length === 0 ? (
           <p className="text-gray-500">No products available.</p>
         ) : (
@@ -107,6 +108,16 @@ const ShopInfo = ({ isOwner }) => {
           </div>
         )}
       </div>
+
+      <EditShopInfo
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+        shopInfo={data}
+        onUpdate={(updatedData) => {
+          setData(updatedData); // Cập nhật thông tin shop sau khi chỉnh sửa
+          setIsPopupOpen(false); // Đóng popup sau cập nhật
+        }}
+      />
     </div>
   );
 };

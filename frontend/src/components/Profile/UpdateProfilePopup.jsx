@@ -15,7 +15,7 @@ const UpdateProfilePopup = ({ isOpen, onClose, userInfo, onUpdate }) => {
     setAvatar(file);
     setAvatarPreview(URL.createObjectURL(file));
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     let uploadedAvatarURL;
@@ -23,8 +23,8 @@ const UpdateProfilePopup = ({ isOpen, onClose, userInfo, onUpdate }) => {
     if (avatar) {
       const fileData = new FormData();
       fileData.append("file", avatar);
-      fileData.append("upload_preset", "eCommercePreset"); // Thêm upload preset
-      fileData.append("folder", "eCommerce");
+      fileData.append("upload_preset", "eCommerce_AvatarPreset"); // Thêm upload preset
+      fileData.append("folder", "eCommerce_Avatar");
 
       try {
         const response = await axios.post(
@@ -85,7 +85,13 @@ const UpdateProfilePopup = ({ isOpen, onClose, userInfo, onUpdate }) => {
               onChange={handleAvatarChange}
               className="w-full p-2 border border-gray-300 rounded-lg"
             />
-            {avatar && <img src={avatarPreview} alt="Preview" className="mt-4 w-20 h-20 rounded-full" />}
+            {avatar && (
+              <img
+                src={avatarPreview}
+                alt="Preview"
+                className="mt-4 w-20 h-20 rounded-full"
+              />
+            )}
           </div>
           <div className="mb-4">
             <label className="block text-sm text-gray-500">Họ và tên:</label>
@@ -101,6 +107,7 @@ const UpdateProfilePopup = ({ isOpen, onClose, userInfo, onUpdate }) => {
             <select
               value={gioiTinh}
               onChange={(e) => setGioiTinh(e.target.value)}
+              onClick={(e) => setGioiTinh(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-lg"
             >
               <option value="M">Nam</option>
