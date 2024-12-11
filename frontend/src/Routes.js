@@ -9,7 +9,7 @@ import VerifyPage from "../src/pages/VerifyPage"
 import ForgotPasswordPage from "../src/pages/ForgotPasswordPage"
 import ResetPasswordPage from "../src/pages/ResetPasswordPage"
 import ProfilePage from './components/Profile/ProfilePage'; 
-import Cart from './components/Cart/Cart'; 
+import Cart from './components/Cart/MiniCart'; 
 import SellerSignup from './components/Signup/SellerSignup';
 import SearchProductPage from "./pages/SearchProductPage"
 

@@ -1,74 +1,93 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
 import { FaCartPlus, FaRegEye } from "react-icons/fa";
-import ProductDetailPopup from './ProductDetailPopup';
+import ProductDetailPopup from "./ProductDetailPopup";
+import { useCart } from "../../context/CartContext";
 
 const ProductCard = ({ product }) => {
-    const [isPopupOpen, setIsPopupOpen] = useState(false); // State to control the popup visibility
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isHovered, setIsHovered] = useState(false); // Thêm trạng thái hover
+  const { addToCart } = useCart();
 
-  // Function to open the popup
   const openPopup = () => {
     setIsPopupOpen(true);
   };
 
-  // Function to close the popup
   const closePopup = () => {
     setIsPopupOpen(false);
   };
+
   return (
-    <div className="w-full max-w-[300px] bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+    <div
+      className="w-full max-w-[300px] bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div className="relative">
-        {/* Image */}
+        {/* Hình ảnh sản phẩm */}
         <img
           src={product.Url_thumbnail || "https://via.placeholder.com/150"}
           alt={product.Ten_san_pham}
-          className="w-full h-[200px] object-cover rounded-lg"
+          className="w-full h-[200px] object-cover rounded-lg cursor-pointer"
+          onClick={openPopup} // Mở popup khi bấm vào hình
         />
+
+        {/* Hiển thị thông tin nhanh khi hover */}
+        {isHovered && (
+          <div className="absolute inset-0 bg-black bg-opacity-50 text-white flex flex-col justify-center items-center p-4 rounded-lg">
+            <p className="text-lg font-semibold">{product.Ten_san_pham}</p>
+            <p className="text-sm mt-2">{product.Mo_ta_ngan || "Mô tả ngắn"}</p>
+          </div>
+        )}
+
         <div className="absolute top-2 right-2 flex space-x-2">
-          {/* Cart Icon */}
-          <button className="p-2 bg-white rounded-full hover:bg-gray-200">
-            <FaCartPlus className="h-5 w-5 text-gray-700" />
-          </button>
-          {/* View Icon */}
-          <button 
-            className="p-2 bg-white rounded-full hover:bg-gray-200" 
-            onClick={openPopup} // Trigger popup on click
+          {/* Nút thêm vào giỏ */}
+          <button
+            className="p-2 bg-white rounded-full hover:bg-gray-200"
+            onClick={() => addToCart(product)}
           >
-            <FaRegEye className="h-5 w-5 text-gray-700" />
+            <FaCartPlus className="h-5 w-5 text-gray-700" />
           </button>
         </div>
       </div>
-      
-      {/* Product Info */}
+
+      {/* Thông tin sản phẩm */}
       <div className="mt-4">
         <h3 className="text-lg font-semibold text-gray-900">{product.Ten_san_pham}</h3>
         <p className="text-sm text-gray-500">{product.Thuong_hieu}</p>
         <div className="flex items-center mt-2">
-          {/* Rating */}
+          {/* Hiển thị đánh giá */}
           <div className="flex items-center space-x-1">
             {[...Array(5)].map((_, index) => (
-              <svg key={index} xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20" stroke="currentColor">
-                <path fillRule="evenodd" d="M10 15l-3.618 2.409L7.52 12.09 4 8.591l4.82-.409L10 2l1.18 5.773L16 8.591l-3.52 3.499L13.618 17.41z" clipRule="evenodd" />
+              <svg
+                key={index}
+                xmlns="http://www.w3.org/2000/svg"
+                className={`h-4 w-4 ${index < product.ratings ? "text-yellow-400" : "text-gray-300"}`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                stroke="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 15l-3.618 2.409L7.52 12.09 4 8.591l4.82-.409L10 2l1.18 5.773L16 8.591l-3.52 3.499L13.618 17.41z"
+                  clipRule="evenodd"
+                />
               </svg>
             ))}
           </div>
-          <span className="text-sm text-gray-600">({product.ratings}Ratings)</span>
+          <span className="text-sm text-gray-600">({product.ratings} Ratings)</span>
         </div>
-        
-        {/* Price */}
+
+        {/* Giá sản phẩm */}
         <div className="flex justify-between items-center mt-2">
           <span className="text-lg font-semibold text-gray-900">{product.Gia} VND</span>
         </div>
-        
-        {/* Sold Count */}
-        <p className="text-sm text-gray-600 mt-1">{product.SL_da_ban} Đã bán</p>
       </div>
 
-      {/* Popup for product details */}
+      {/* Popup chi tiết sản phẩm */}
       {isPopupOpen && (
         <ProductDetailPopup
-          setOpen={setIsPopupOpen} // Pass function to close the popup
-          productData={product} // Pass product data to the popup
+          setOpen={closePopup}
+          productData={product}
         />
       )}
     </div>

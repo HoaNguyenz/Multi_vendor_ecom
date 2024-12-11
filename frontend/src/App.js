@@ -8,10 +8,14 @@ import "./App.css"
 import { AuthProvider } from "./context/AuthContext";
 import UserRoute from './context/userRoute';
 import SellerRoute from './context/sellerRoute';
+import { CartProvider } from "./context/CartContext";
+import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
 
 const App = () => {
   return (
     <AuthProvider>
+    <CartProvider>
     <BrowserRouter>
       <Routes>
           <Route path='/login' element={<LoginPage />} />
@@ -29,9 +33,11 @@ const App = () => {
           <Route path='/shop-info' element={<SellerRoute element={<ShopInfoPage />} />} />
           <Route path='/profile' element={<UserRoute element={<ProfilePage />} />} /> 
           <Route path='/sign-up-seller' element={<UserRoute element={<SellerSignup />} />} />
-          <Route path='/cart' element={<UserRoute element={<Cart />} />} /> 
+          <Route path='/cart' element={<CartPage />}  /> 
+          <Route path="/checkout" element={<CheckoutPage />} />
       </Routes>
     </BrowserRouter>
+    </CartProvider>
     </AuthProvider>
   )
 }
