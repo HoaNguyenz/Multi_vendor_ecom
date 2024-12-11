@@ -7,11 +7,13 @@ import { IoIosArrowDown } from "react-icons/io";
 import { useAuth } from "../../context/AuthContext"; // Import context
 import useLogout from "../../hooks/useLogout";
 import axios from "../../context/configAxios";
+import MiniCart from "../Cart/MiniCart";
 
 const Header = () => {
   const { user, loading } = useAuth();
   const [profileMenu, setProfileMenu] = useState(false);
   const [categoryMenu, setCategoryMenu] = useState(false);
+  const [showMiniCart, setShowMiniCart] = useState(false); // State để điều khiển MiniCart
   const profileMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -93,7 +95,7 @@ const Header = () => {
   };
 
   return (
-    <div className="w-full bg-blue-500 h-[60px] flex items-center justify-between px-4 md:px-8">
+    <div className="w-full bg-blue-500 h-[60px] flex items-center justify-between px-4 md:px-8 relative">
       <div className="text-white font-bold text-xl md:text-2xl">
         <Link to="/">LOGO</Link>
       </div>
@@ -157,9 +159,11 @@ const Header = () => {
 
       {/* User avatar/ Login Button */}
       <div className="flex items-center md:space-x-6 text-white">
-        <Link to="/cart">
-          <AiOutlineShoppingCart size={28} className="cursor-pointer" />
-        </Link>
+        <AiOutlineShoppingCart
+          size={28}
+          className="cursor-pointer"
+          onClick={() => setShowMiniCart((prev) => !prev)} // Toggle MiniCart
+        />
         <div className="relative">
           {user ? (
             <button
@@ -187,47 +191,11 @@ const Header = () => {
               </span>
             </Link>
           )}
-          {/* Menu profile */}
-          {profileMenu && (
-            <div
-              ref={profileMenuRef}
-              className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden z-50"
-            >
-              <Link
-                to="/profile"
-                className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Hồ sơ cá nhân
-              </Link>
-
-              {user && user.la_nguoi_ban === true && (
-                <Link
-                  to="/shop-dashboard"
-                  className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  Cửa hàng của tôi
-                </Link>
-              )}
-
-              {user.la_nguoi_ban === false && (
-                <Link
-                  to="/sign-up-seller"
-                  className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  Đăng ký làm người bán
-                </Link>
-              )}
-
-              <button
-                onClick={logout} // Gọi hàm logout từ context
-                className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Đăng xuất
-              </button>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* MiniCart */}
+      {showMiniCart && <MiniCart />}
     </div>
   );
 };
