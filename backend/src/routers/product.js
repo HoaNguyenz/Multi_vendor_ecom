@@ -1,7 +1,6 @@
 const express = require("express");
 // const validations = require("../validations/product");
 const controllers = require("../controllers/product");
-const { verifyToken } = require("../middleware");
 
 const productRouter = express.Router();
 
@@ -26,8 +25,5 @@ productRouter.get(
 productRouter.get("/product-detail/:id", controllers.getDetailProduct);
 productRouter.get("/best-selling-products", controllers.getBestSellingProducts);
 productRouter.get("/product-seller", controllers.getProductSeller);
-
-// FIXME:
-// productRouter.use(verifyToken);
 
 module.exports = productRouter;
