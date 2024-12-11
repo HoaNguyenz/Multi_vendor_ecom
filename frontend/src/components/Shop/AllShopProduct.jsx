@@ -89,7 +89,7 @@ const AllShopProduct = () => {
       headerAlign: "center",
     },
     {
-      field: "Ngay_tao",
+      field: "Thoi_gian_tao",
       headerName: "Ngày tạo",
       minWidth: 80,
       flex: 0.6,
