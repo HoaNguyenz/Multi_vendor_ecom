@@ -130,7 +130,7 @@ const AllShopProduct = () => {
   };
 
   return (
-    <div className="w-[95%] bg-white shadow h-[85vh] rouded-[4px] p-3 overflow-y-scroll no-scrollbar">
+    <div className="w-[95%] bg-white shadow h-[85vh] p-3 overflow-y-scroll no-scrollbar rounded-lg">
       <div className="w-full flex items-center justify-between font-bold text-[27px] text-center pb-2">
         <h5>Tất cả sản phẩm</h5>
         <Button variant="outlined" onClick={openPopup}>

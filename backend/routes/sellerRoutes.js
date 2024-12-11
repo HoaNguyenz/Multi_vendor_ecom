@@ -38,7 +38,6 @@ router.post("/sign-up-seller", verifyToken, async (req, res) => {
               VALUES (${snowflake.generate()}, ${so_nha}, ${phuong_or_xa}, ${quan_or_huyen}, ${tinh_or_tp}, ${Sdt});
           `;
 
-    console.log(result);
     const diaChi = result.recordset[0].ID;
 
     await sql.query`
@@ -73,7 +72,6 @@ router.get("/seller-info", verifyToken, async (req, res) => {
     const result = await sql.query`SELECT *
   FROM (SELECT * FROM Nguoi_ban_va_Cua_hang WHERE Sdt = ${Sdt}) AS T JOIN Dia_chi ON Dia_chi = ID`;
     const seller = result.recordset[0];
-    console.log(seller);
 
     if (!seller) {
       return res.status(404).json({ message: "Người bán không tồn tại." });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "../../context/configAxios";
+import { FaFilter } from "react-icons/fa6";
 
 const FilterSidebar = ({ filters, setFilters }) => {
   const [localFilters, setLocalFilters] = useState(filters); // Bản sao cục bộ của filters
@@ -26,20 +27,20 @@ const FilterSidebar = ({ filters, setFilters }) => {
 
   const handleFilterChange = (e) => {
     const { name, value, checked } = e.target;
-  
+
     setLocalFilters((prev) => {
       const prevValues = prev[name] || [];
       const updatedValues = checked
         ? [...prevValues, value]
         : prevValues.filter((v) => v !== value);
-  
+
       return {
         ...prev,
         [name]: updatedValues,
       };
     });
   };
-  
+
   // Cập nhật giá trị cho inStock khi chọn tình trạng hàng
   const handleInStockChange = (value) => {
     setLocalFilters((prev) => ({
@@ -74,84 +75,117 @@ const FilterSidebar = ({ filters, setFilters }) => {
   };
 
   return (
-    <div className="w-[15vw] p-4 border-r border-gray-200">
-      <h2 className="text-lg font-bold mb-4">Lọc sản phẩm</h2>
-
+    <div className="w-[15vw] p-4 border-r border-gray-200 bg-white">
       {/* Xuất xứ */}
       <div className="mb-4">
-        <label className="block font-medium mb-2">Xuất xứ</label>
+        <div className="flex justify-between items-center font-medium mb-2 space-x-2">
+          <span className="text-blue-400">Xuất xứ</span>
+          <button 
+            onClick={applyFilters}
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            <FaFilter className="text-blue-400" />
+          </button>
+        </div>
         {options.origins.map((origin) => (
-          <div key={origin} className="flex items-center mb-1">
+          <div key={origin} className="flex items-center mb-1 group">
             <input
               type="checkbox"
               name="origins"
               value={origin}
               checked={localFilters.origins.includes(origin)}
               onChange={handleFilterChange}
-              className="mr-2"
+              className="mr-2 w-4 h-4 border-gray-300 rounded focus:ring-0 group-hover:border-blue-500 group-hover:ring-2 group-hover:ring-blue-500 transition duration-200"
             />
-            <span>{origin}</span>
+            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">{origin}</span>
           </div>
         ))}
       </div>
-
+      <hr className="border-t border-gray-300 my-4" />
       {/* Thương hiệu */}
       <div className="mb-4">
-        <label className="block font-medium mb-2">Thương hiệu</label>
+        <div className="flex justify-between items-center font-medium mb-2 space-x-2">
+          <span className="text-blue-400">Thương hiệu</span>
+          <button 
+            onClick={applyFilters}
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            <FaFilter className="text-blue-400" />
+          </button>
+        </div>
         {options.brands.map((brand) => (
-          <div key={brand} className="flex items-center mb-1">
+          <div key={brand} className="flex items-center mb-1 group">
             <input
               type="checkbox"
               name="brands"
               value={brand}
               checked={localFilters.brands.includes(brand)}
               onChange={handleFilterChange}
-              className="mr-2"
+              className="mr-2 w-4 h-4 border-gray-300 rounded focus:ring-0 group-hover:border-blue-500 group-hover:ring-2 group-hover:ring-blue-500 transition duration-200"
             />
-            <span>{brand}</span>
+            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">{brand}</span>
           </div>
         ))}
       </div>
-
+      <hr className="border-t border-gray-300 my-4" />
       {/* Màu sắc */}
       <div className="mb-4">
-        <label className="block font-medium mb-2">Màu sắc</label>
+        <div className="flex justify-between items-center font-medium mb-2 space-x-2">
+          <span className="text-blue-400">Màu sắc</span>
+          <button 
+            onClick={applyFilters}
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            <FaFilter className="text-blue-400" />
+          </button>
+        </div>
         {options.colors.map((color) => (
-          <div key={color} className="flex items-center mb-1">
+          <div key={color} className="flex items-center mb-1 group">
             <input
               type="checkbox"
               name="colors"
               value={color}
               checked={localFilters.colors.includes(color)}
               onChange={handleFilterChange}
-              className="mr-2"
+              className="mr-2 w-4 h-4 border-gray-300 rounded focus:ring-0 group-hover:border-blue-500 group-hover:ring-2 group-hover:ring-blue-500 transition duration-200"
             />
-            <span>{color}</span>
+            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">{color}</span>
           </div>
         ))}
       </div>
-
+      <hr className="border-t border-gray-300 my-4" />
       {/* Kích cỡ */}
       <div className="mb-4">
-        <label className="block font-medium mb-2">Kích cỡ</label>
+        <div className="flex justify-between items-center font-medium mb-2 space-x-2">
+          <span className="text-blue-400">Kích cỡ</span>
+          <button 
+            onClick={applyFilters}
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            <FaFilter className="text-blue-400" />
+          </button>
+        </div>
         {options.sizes.map((size) => (
-          <div key={size} className="flex items-center mb-1">
+          <div key={size} className="flex items-center mb-1 group">
             <input
               type="checkbox"
               name="sizes"
               value={size}
               checked={localFilters.sizes.includes(size)}
               onChange={handleFilterChange}
-              className="mr-2"
+              className="mr-2 w-4 h-4 border-gray-300 rounded focus:ring-0 group-hover:border-blue-500 group-hover:ring-2 group-hover:ring-blue-500 transition duration-200"
             />
-            <span>{size}</span>
+            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">{size}</span>
           </div>
         ))}
       </div>
-
+      <hr className="border-t border-gray-300 my-4" />
       {/* Khoảng giá */}
       <div className="mb-4">
-        <label className="block font-medium mb-2">Khoảng giá</label>
+        <div className="flex justify-between items-center font-medium mb-2 space-x-2">
+          <span className="text-blue-400">Khoảng giá</span>
+          <button 
+            onClick={applyFilters}
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            <FaFilter className="text-blue-400" />
+          </button>
+        </div>
         <div className="flex space-x-2">
           <input
             type="number"
@@ -171,31 +205,38 @@ const FilterSidebar = ({ filters, setFilters }) => {
           />
         </div>
       </div>
-
+      <hr className="border-t border-gray-300 my-4" />
       {/* Tình trạng hàng */}
       <div className="mb-4">
-        <label className="block font-medium mb-2">Tình trạng hàng</label>
-        <div className="flex items-center mb-1">
+        <div className="flex justify-between items-center font-medium mb-2 space-x-2">
+          <span className="text-blue-400">Tình trạng hàng</span>
+          <button 
+            onClick={applyFilters}
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            <FaFilter className="text-blue-400" />
+          </button>
+        </div>
+        <div className="flex items-center mb-1 group">
           <input
             type="radio"
             name="inStock"
             value={true}
             checked={localFilters.inStock === true}
             onChange={() => handleInStockChange(true)}
-            className="mr-2"
+            className="mr-2 w-4 h-4"
           />
-          <span>Còn hàng</span>
+          <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">Còn hàng</span>
         </div>
-        <div className="flex items-center mb-1">
+        <div className="flex items-center mb-1 group">
           <input
             type="radio"
             name="inStock"
             value={false}
             checked={localFilters.inStock === false}
             onChange={() => handleInStockChange(false)}
-            className="mr-2"
+            className="mr-2 w-4 h-4"
           />
-          <span>Hết hàng</span>
+          <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">Hết hàng</span>
         </div>
       </div>
 

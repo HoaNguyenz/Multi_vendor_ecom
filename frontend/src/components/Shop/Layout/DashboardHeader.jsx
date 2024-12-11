@@ -52,7 +52,7 @@ const Header = () => {
 
           {/* Menu profile */}
           {profileMenu && (
-            <div className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden">
+            <div className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden z-50">
               <Link
                 to="/profile"
                 className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

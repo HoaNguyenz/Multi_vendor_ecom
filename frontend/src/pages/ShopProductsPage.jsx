@@ -14,7 +14,6 @@ const ShopProductsPage = () => {
 
         <div className="w-[75%] justify-center flex flex-1">
           <AllShopProduct></AllShopProduct>
-
         </div>
       </div>
     </div>
