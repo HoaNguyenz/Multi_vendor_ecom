@@ -191,7 +191,44 @@ const Header = () => {
               </span>
             </Link>
           )}
+          {/* Menu profile */}
+          {profileMenu && (
+            <div
+              ref={profileMenuRef}
+              className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden z-50"
+            >
+              <Link
+                to="/profile"
+                className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Hồ sơ cá nhân
+              </Link>
+              {user && user.la_nguoi_ban === true && (
+                <Link
+                  to="/shop-dashboard"
+                  className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Cửa hàng của tôi
+                </Link>
+              )}
+              {user.la_nguoi_ban === false && (
+                <Link
+                  to="/sign-up-seller"
+                  className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                >
+                  Đăng ký làm người bán
+                </Link>
+              )}
+              <button
+                onClick={logout} // Gọi hàm logout từ context
+                className="block w-full text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          )}
         </div>
+
       </div>
 
       {/* MiniCart */}
