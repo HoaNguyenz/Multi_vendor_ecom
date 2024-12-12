@@ -15,6 +15,8 @@ productRouter.put("/edit-product/:id", controllers.updateProduct);
 
 productRouter.get("/search-products", controllers.searchProducts);
 
+productRouter.get("/search-productsbyBao", controllers.searchProductsbyBao);
+
 productRouter.get("/products-by-category", controllers.getProductsByCategory);
 // search products by seller
 productRouter.get(

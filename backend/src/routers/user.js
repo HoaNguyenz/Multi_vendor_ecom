@@ -10,8 +10,8 @@ userRouter.use(verifyToken);
 userRouter.get("/get-user-info/:username", controllers.getUserInfo);
 userRouter.put("/update-user", controllers.updateUser);
 
-userRouter.post("/cart/", controllers.addToCart);
-userRouter.delete("/cart/", controllers.deleteFromCart);
+userRouter.post("/cart", controllers.addToCart);
+userRouter.delete("/cart", controllers.deleteFromCart);
 userRouter.get("/cart", controllers.getCart);
 userRouter.put("/cart", controllers.updateCart);
 
