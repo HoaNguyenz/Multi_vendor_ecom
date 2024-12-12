@@ -153,7 +153,7 @@ const searchProducts = async (req, res) => {
         SELECT sp.*, mms.Mau_sac, mms.Kich_co, mms.So_luong_ton_kho
         FROM San_pham sp
         LEFT JOIN Mau_ma_san_pham mms ON sp.Ma_san_pham = mms.Ma_san_pham
-        WHERE 1 = 1
+        WHERE 1 = 1 AND Ma_cua_hang != -1
       `;
 
     // Thêm các điều kiện lọc
@@ -237,7 +237,11 @@ const searchProductsbyBao = async (req, res) => {
     let query = `
         SELECT *
         FROM San_pham sp
+<<<<<<< HEAD
         WHERE 1 = 1
+=======
+        WHERE 1 = 1 AND Ma_cua_hang != -1
+>>>>>>> 41766a6e41c0edc9dc875112e2eebaee9e46e02e
       `;
 
     // Thêm các điều kiện lọc
