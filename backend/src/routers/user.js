@@ -29,4 +29,7 @@ userRouter.put(
 );
 userRouter.delete("/address/:id", controllers.deleteAddress);
 
+userRouter.post("/review", controllers.addReview);
+userRouter.get("/review/:maSanPham", controllers.getReview);
+
 module.exports = userRouter;
