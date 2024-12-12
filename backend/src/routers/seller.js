@@ -8,4 +8,8 @@ sellerRouter.post("/sign-up-seller", controllers.signUpSeller);
 sellerRouter.get("/seller-info", controllers.getSellerInfo);
 sellerRouter.put("/update-shop", controllers.updateShop);
 
+sellerRouter.get("/seller/orders", controllers.getOrders);
+sellerRouter.put("/confirm-order/:id", controllers.confirmOrder);
+sellerRouter.put("/confirm-delivery/:id", controllers.confirmDelivery);
+
 module.exports = sellerRouter;

@@ -87,20 +87,35 @@ const updateUser = async (req, res) => {
 
 const addToCart = async (req, res) => {
   const { mau_ma_sp, so_luong } = req.body;
+  if (so_luong <= 0) {
+    throw new Error("Số lượng sản phẩm phải lớn hơn 0.");
+  }
   const sdt = req.user.id;
+
   try {
+    const mmsp = await sql.query(`select So_luong_ton_kho from Mau_ma_san_pham
+where ID = ${mau_ma_sp}`);
+
+    const ton_kho = mmsp.recordset[0].So_luong_ton_kho;
     // Check if the product is already in the cart
+
+    if (so_luong > ton_kho) {
+      throw new Error("Số lượng sản phẩm trong kho không đủ.");
+    }
     const checkProduct = await sql.query(`
         SELECT * FROM Chi_tiet_Gio_hang
-        WHERE Sdt = ${sdt} AND Mau_ma_sp = ${mau_ma_sp}
+        WHERE Sdt = '${sdt}' AND Mau_ma_sp = ${mau_ma_sp}
       `);
 
     if (checkProduct.recordset.length > 0) {
       // Update the quantity of the product in the cart
+      if (so_luong + checkProduct.recordset[0].So_luong > ton_kho) {
+        throw new Error("Số lượng sản phẩm trong kho không đủ.");
+      }
       await sql.query(`
           UPDATE Chi_tiet_Gio_hang
           SET So_luong = So_luong + ${so_luong}
-          WHERE Sdt = ${sdt} AND Mau_ma_sp = ${mau_ma_sp}
+          WHERE Sdt = '${sdt}' AND Mau_ma_sp = ${mau_ma_sp}
         `);
     } else {
       // Add the product to the cart
@@ -113,9 +128,10 @@ const addToCart = async (req, res) => {
     res.status(200).json({ message: "Đã thêm sản phẩm vào giỏ hàng." });
   } catch (error) {
     console.error(error);
+    err = error.message;
     res
       .status(500)
-      .json({ message: "Thêm sản phẩm vào giỏ hàng thất bại", error });
+      .json({ message: "Thêm sản phẩm vào giỏ hàng thất bại", err });
   }
 };
 
@@ -124,23 +140,38 @@ const deleteFromCart = async (req, res) => {
   const sdt = req.user.id;
 
   try {
-    await sql.query`
+    const result = await sql.query(`
         DELETE FROM Chi_tiet_Gio_hang
         WHERE Sdt = ${sdt} AND Mau_ma_sp = ${mau_ma_sp}
-      `;
+      `);
+
+    if (result.rowsAffected == 0) {
+      throw new Error("Sản phẩm không tồn tại trong giỏ hàng.");
+    }
 
     res.status(200).json({ message: "Đã xóa sản phẩm khỏi giỏ hàng." });
   } catch (error) {
     console.error(error);
+    err = error.message;
     res
       .status(500)
-      .json({ message: "Xóa sản phẩm khỏi giỏ hàng thất bại", error });
+      .json({ message: "Xóa sản phẩm khỏi giỏ hàng thất bại", err });
   }
 };
 
 const getCart = async (req, res) => {
   const sdt = req.user.id;
   try {
+    const result2 = await sql.query(`
+select Ten_san_pham, Url_thumbnail, Xuat_xu, Thuong_hieu, Gia, Mau_sac, Kich_co, So_luong, Mau_ma_sp, Ma_cua_hang
+from Chi_tiet_Gio_hang
+join Mau_ma_san_pham mmsp on Mau_ma_sp = ID
+join San_pham sp on mmsp.Ma_san_pham = sp.Ma_san_pham
+where sdt = '${sdt}'
+`);
+    res.status(200).json(result2.recordset);
+    return;
+
     const result = await sql.query`
         SELECT 
           ctgh.Sdt,
@@ -161,38 +192,55 @@ const getCart = async (req, res) => {
     res.status(200).json(result.recordset);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Lấy thông tin giỏ hàng thất bại", error });
+    err = error.message;
+    res.status(500).json({ message: "Lấy thông tin giỏ hàng thất bại", err });
   }
 };
 
 const updateCart = async (req, res) => {
   const { mau_ma_sp, so_luong } = req.body;
   const sdt = req.user.id;
+  if (so_luong <= 0) {
+    throw new Error("Số lượng sản phẩm phải lớn hơn 0.");
+  }
 
   try {
-    await sql.query(`
+    const mmsp = await sql.query(`select So_luong_ton_kho from Mau_ma_san_pham
+where ID = ${mau_ma_sp}`);
+    const ton_kho = mmsp.recordset[0].So_luong_ton_kho;
+    if (so_luong > ton_kho) {
+      throw new Error("Số lượng sản phẩm trong kho không đủ.");
+    }
+
+    const result = await sql.query(`
         UPDATE Chi_tiet_Gio_hang
         SET So_luong = ${so_luong}
         WHERE Sdt = ${sdt} AND Mau_ma_sp = ${mau_ma_sp}
       `);
+    if (result.rowsAffected == 0) {
+      throw new Error("Sản phẩm không tồn tại trong giỏ hàng.");
+    }
 
     res.status(200).json({ message: "Đã cập nhật giỏ hàng." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Cập nhật giỏ hàng thất bại", error });
+    err = error.message;
+    res.status(500).json({ message: "Cập nhật giỏ hàng thất bại", err });
   }
 };
 
 const createOrder = async (req, res) => {
-  const { dia_chi_giao_hang, phi_giao_hang, chi_tiet_don_hang } = req.body;
+  const { dia_chi_giao_hang, chi_tiet_don_hang, ma_cua_hang } = req.body;
   const sdt = req.user.id;
   const ma_don_hang = snowflake.generate();
 
+  const phi_giao_hang = 20000;
+  const soNgay = 3;
   try {
     // Create an order
     await sql.query(`
-        INSERT INTO Don_hang (Ma_don_hang, Thoi_gian_dat_hang, Ngay_du_kien_giao, Trang_thai, Phi_giao_hang, Sdt, Dia_chi_giao_hang)
-        VALUES (${ma_don_hang}, GETDATE(), DATEADD(day, 2, GETDATE()), 'Chờ xác nhận', ${phi_giao_hang}, ${sdt}, ${dia_chi_giao_hang})
+        INSERT INTO Don_hang (Ma_don_hang, Thoi_gian_dat_hang, Ngay_du_kien_giao, Phi_giao_hang, Sdt, Ma_cua_hang, Dia_chi_giao_hang)
+        VALUES (${ma_don_hang}, GETDATE(), DATEADD(day, ${soNgay}, GETDATE()), ${phi_giao_hang}, '${sdt}', ${ma_cua_hang}, ${dia_chi_giao_hang})
       `);
 
     // Add order details
@@ -206,7 +254,8 @@ const createOrder = async (req, res) => {
     res.status(200).json({ message: "Đã tạo đơn hàng." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Tạo đơn hàng thất bại", error });
+    const err = error.message;
+    res.status(500).json({ message: "Tạo đơn hàng thất bại", err });
   }
 };
 
@@ -217,14 +266,15 @@ const cancelOrder = async (req, res) => {
   try {
     await sql.query(`
         UPDATE Don_hang
-        SET Trang_thai = 'Đã hủy', Ly_do_huy = ${ly_do_huy}
-        WHERE Ma_don_hang = ${ma_don_hang} AND Sdt = ${sdt}
+        SET Trang_thai = N'Đã hủy', Ly_do_huy = ${ly_do_huy}
+        WHERE Ma_don_hang = ${ma_don_hang}
       `);
 
     res.status(200).json({ message: "Đã hủy đơn hàng." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Hủy đơn hàng thất bại", error });
+    const err = error.message;
+    res.status(500).json({ message: "Hủy đơn hàng thất bại", err });
   }
 };
 
