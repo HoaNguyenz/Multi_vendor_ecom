@@ -71,7 +71,15 @@ const addToCart = async (req, res) => {
   const sdt = req.user.id;
 
   try {
+    const mmsp = await sql.query(`select So_luong_ton_kho from Mau_ma_san_pham
+where ID = ${mau_ma_sp}`);
+
+    const ton_kho = mmsp.recordset[0].So_luong_ton_kho;
     // Check if the product is already in the cart
+
+    if (so_luong > ton_kho) {
+      throw new Error("Số lượng sản phẩm trong kho không đủ.");
+    }
     const checkProduct = await sql.query(`
         SELECT * FROM Chi_tiet_Gio_hang
         WHERE Sdt = '${sdt}' AND Mau_ma_sp = ${mau_ma_sp}
@@ -79,6 +87,9 @@ const addToCart = async (req, res) => {
 
     if (checkProduct.recordset.length > 0) {
       // Update the quantity of the product in the cart
+      if (so_luong + checkProduct.recordset[0].So_luong > ton_kho) {
+        throw new Error("Số lượng sản phẩm trong kho không đủ.");
+      }
       await sql.query(`
           UPDATE Chi_tiet_Gio_hang
           SET So_luong = So_luong + ${so_luong}
@@ -172,6 +183,13 @@ const updateCart = async (req, res) => {
   }
 
   try {
+    const mmsp = await sql.query(`select So_luong_ton_kho from Mau_ma_san_pham
+where ID = ${mau_ma_sp}`);
+    const ton_kho = mmsp.recordset[0].So_luong_ton_kho;
+    if (so_luong > ton_kho) {
+      throw new Error("Số lượng sản phẩm trong kho không đủ.");
+    }
+
     const result = await sql.query(`
         UPDATE Chi_tiet_Gio_hang
         SET So_luong = ${so_luong}
@@ -226,14 +244,15 @@ const cancelOrder = async (req, res) => {
   try {
     await sql.query(`
         UPDATE Don_hang
-        SET Trang_thai = 'Đã hủy', Ly_do_huy = ${ly_do_huy}
-        WHERE Ma_don_hang = ${ma_don_hang} AND Sdt = ${sdt}
+        SET Trang_thai = N'Đã hủy', Ly_do_huy = ${ly_do_huy}
+        WHERE Ma_don_hang = ${ma_don_hang}
       `);
 
     res.status(200).json({ message: "Đã hủy đơn hàng." });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Hủy đơn hàng thất bại", error });
+    const err = error.message;
+    res.status(500).json({ message: "Hủy đơn hàng thất bại", err });
   }
 };
 

@@ -218,6 +218,85 @@ const searchProducts = async (req, res) => {
   }
 };
 
+const searchProductsbyBao = async (req, res) => {
+  const {
+    keyword,
+    origin, // có thể là mảng
+    brand, // có thể là mảng
+    priceMin,
+    priceMax,
+    color, // có thể là mảng
+    size, // có thể là mảng
+    inStock,
+    category,
+  } = req.query;
+
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 20;
+  try {
+    let query = `
+        SELECT *
+        FROM San_pham sp
+        WHERE 1 = 1
+      `;
+
+    // Thêm các điều kiện lọc
+    if (keyword)
+      query += ` AND sp.Ten_san_pham COLLATE Latin1_General_CI_AI LIKE N'%${keyword}%'`;
+    if (category) query += ` AND sp.Ten_danh_muc = N'${category}'`;
+
+    // Xử lý mảng (nếu `origin` là mảng, chuyển thành chuỗi để dùng trong `IN`)
+    if (origin) {
+      const origins = Array.isArray(origin) ? origin : [origin];
+      query += ` AND sp.Xuat_xu IN (${origins
+        .map((o) => `N'${o}'`)
+        .join(",")})`;
+    }
+
+    if (brand) {
+      const brands = Array.isArray(brand) ? brand : [brand];
+      query += ` AND sp.Thuong_hieu IN (${brands
+        .map((b) => `N'${b}'`)
+        .join(",")})`;
+    }
+
+    if (priceMin) query += ` AND sp.Gia >= ${priceMin}`;
+    if (priceMax) query += ` AND sp.Gia <= ${priceMax}`;
+
+    // Thêm phần phân trang
+    // query += ` ORDER BY sp.Ma_san_pham OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`;
+    queryPaging =
+      query +
+      ` ORDER BY sp.Ma_san_pham OFFSET ${
+        (page - 1) * limit
+      } ROWS FETCH NEXT ${limit} ROWS ONLY;`;
+
+    // Thực hiện truy vấn
+    const products = await sql.query(queryPaging);
+
+    if (products.recordset.length === 0) {
+      return res.status(404).json({
+        message: "Không có sản phẩm nào phù hợp với yêu cầu tìm kiếm.",
+      });
+    }
+
+    let message = {};
+    if (page == 1) {
+      const countProduct = await sql.query(query);
+      count = countProduct.recordset.length;
+      const totalPages = Math.ceil(count / limit);
+      message.totalPages = totalPages;
+    }
+
+    message.products = products.recordset;
+
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ message: "Có lỗi xảy ra khi lấy sản phẩm." });
+  }
+};
+
 const getDetailProduct = async (req, res) => {
   const Ma_san_pham = req.params.id;
 
@@ -283,6 +362,8 @@ const getBestSellingProducts = async (req, res) => {
 
 const getProductSeller = async (req, res) => {
   const Sdt = req.user.id; // Sdt của người bán từ token
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 20;
 
   try {
     const result = await sql.query`
@@ -304,15 +385,34 @@ const getProductSeller = async (req, res) => {
           )
           GROUP BY sp.Ma_san_pham, sp.Ten_san_pham, sp.Gia, sp.SL_da_ban, sp.Ten_danh_muc, sp.Thoi_gian_tao, sp.Url_thumbnail
           ORDER BY sp.Thoi_gian_tao DESC
+          OFFSET ${(page - 1) * limit} ROWS
+          FETCH NEXT ${limit} ROWS ONLY
         `;
 
     const products = result.recordset;
-
     if (products.length === 0) {
       return res.status(404).json({ message: "Không có sản phẩm nào." });
     }
 
-    res.status(200).json(products);
+    let message = {};
+    if (page == 1) {
+      const countProduct = await sql.query(`
+            SELECT COUNT(*) as count
+            FROM San_pham
+            WHERE Ma_cua_hang = (
+              SELECT Ma_cua_hang
+              FROM Nguoi_ban_va_Cua_hang
+              WHERE Sdt = '${Sdt}'
+            )
+          `);
+      count = countProduct.recordset[0].count;
+      const totalPages = Math.ceil(count / limit);
+      message.totalPages = totalPages;
+    }
+
+    message.products = products;
+
+    res.status(200).json(message);
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -485,6 +585,7 @@ module.exports = {
   addProduct,
   getFilterOptions,
   searchProducts,
+  searchProductsbyBao,
   getDetailProduct,
   getBestSellingProducts,
   getProductSeller,
