@@ -1,41 +1,56 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "../../context/configAxios";
 import { useAuth } from "../../context/AuthContext";
 import Header from "../Layout/Header";
 import UpdateProfilePopup from "./UpdateProfilePopup";
+import AddAddressPopup from "./Popup/AddAddressPopup";
+import EditAddressPopup from "./Popup/EditAddressPopup";
+import { CiEdit } from "react-icons/ci";
+import { MdDeleteForever } from "react-icons/md";
+
 const ProfilePage = () => {
   const { user } = useAuth();
-  const [userInfo, setUserInfo] = useState(null);
+  const [userInfo, setUserInfo] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isAddAddressPopupOpen, setIsAddAddressPopupOpen] = useState(false);
+  const [isEditAddressPopupOpen, setIsEditAddressPopupOpen] = useState(false);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
     return date.toISOString().split("T")[0]; // Lấy phần yyyy-MM-dd
   };
-  const fetchUserInfo = async () => {
+  const fetchUserInfo = useCallback(async () => {
     if (!user || !user.username) return;
 
     try {
-      const response = await axios.get(`/get-user-info/${user.username}`);
-      const data = response.data;
-      if (data.length > 0) {
-        setUserInfo(data[0]);
-        setAddresses(data);
-      }
+      // Lấy thông tin người dùng
+      const userInfoResponse = await axios.get(
+        `/get-user-info/${user.username}`
+      );
+      const data = userInfoResponse.data;
+      console.log(data);
+      
+        setUserInfo(data);
+
+      // Lấy danh sách địa chỉ
+      const addressResponse = await axios.get(`/address`);
+      console.log(addressResponse.data);
+      setAddresses(addressResponse.data);
+
       setLoading(false);
     } catch (err) {
-      setError("Không thể tải thông tin người dùng.");
+      setError("Không thể tải thông tin người dùng hoặc địa chỉ.");
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchUserInfo();
-  }, [user]);
+  }, [fetchUserInfo]);
 
   const handleUpdate = async (updatedData) => {
     try {
@@ -101,7 +116,7 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        <div className="mt-8">
+        {/* <div className="mt-8">
           <h2 className="text-xl font-bold mb-4">Danh sách địa chỉ</h2>
           {addresses.length > 0 ? (
             <ul>
@@ -111,6 +126,53 @@ const ProfilePage = () => {
                   <p className="text-gray-900 font-medium">
                     {`${address.So_nha}, ${address.Phuong_or_Xa}, ${address.Quan_or_Huyen}, ${address.Tinh_or_TP}`}
                   </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">Không có địa chỉ nào.</p>
+          )}
+        </div> */}
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Danh sách địa chỉ</h2>
+            <button
+              onClick={() => setIsAddAddressPopupOpen(true)}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg"
+            >
+              Thêm địa chỉ
+            </button>
+          </div>
+
+          {addresses.length > 0 ? (
+            <ul>
+              {addresses.map((address, index) => (
+                <li
+                  key={index}
+                  className="mb-4 flex justify-between items-center"
+                >
+                  <div>
+                    <p className="text-gray-500 text-sm">
+                      Địa chỉ {index + 1}:
+                    </p>
+                    <p className="text-gray-900 font-medium">
+                      {`${address.So_nha}, ${address.Phuong_or_Xa}, ${address.Quan_or_Huyen}, ${address.Tinh_or_TP}`}
+                    </p>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setIsEditAddressPopupOpen(true)}
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      <CiEdit size={30}></CiEdit>
+                    </button>
+                    <button
+                      // onClick={() => handleDeleteAddress(address.id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <MdDeleteForever size={30}></MdDeleteForever>
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -134,6 +196,14 @@ const ProfilePage = () => {
         userInfo={userInfo}
         onUpdate={handleUpdate}
       ></UpdateProfilePopup>
+
+      {isAddAddressPopupOpen && (
+        <AddAddressPopup
+          isOpen={isAddAddressPopupOpen}
+          onClose={() => setIsAddAddressPopupOpen(false)}
+          onAdd={fetchUserInfo} // Gọi fetchUserInfo để lấy lại danh sách địa chỉ
+        />
+      )}
     </div>
   );
 };
