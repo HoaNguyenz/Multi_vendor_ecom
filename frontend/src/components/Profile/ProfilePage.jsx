@@ -33,9 +33,7 @@ const ProfilePage = () => {
       );
       const data = userInfoResponse.data;
       console.log(data);
-      
         setUserInfo(data);
-
       // Lấy danh sách địa chỉ
       const addressResponse = await axios.get(`/address`);
       console.log(addressResponse.data);
@@ -52,6 +50,19 @@ const ProfilePage = () => {
     fetchUserInfo();
   }, [fetchUserInfo]);
 
+  const handleDeleteAddress = async (addressId) => {
+    try {
+      // Gửi yêu cầu DELETE tới backend
+      const response = await axios.delete(`/address/${addressId}`);
+      console.log(response.data.message);  // In ra thông báo thành công
+  
+      // Sau khi xóa thành công, gọi lại fetchUserInfo để làm mới danh sách địa chỉ
+      fetchUserInfo();
+    } catch (err) {
+      console.error("Xóa địa chỉ thất bại:", err);
+    }
+  };
+  
   const handleUpdate = async (updatedData) => {
     try {
       // Fetch updated user info from the backend after update
@@ -167,7 +178,7 @@ const ProfilePage = () => {
                       <CiEdit size={30}></CiEdit>
                     </button>
                     <button
-                      // onClick={() => handleDeleteAddress(address.id)}
+                      onClick={() => handleDeleteAddress(address.ID)}
                       className="text-red-500 hover:text-red-700"
                     >
                       <MdDeleteForever size={30}></MdDeleteForever>

@@ -5,7 +5,6 @@ const getCategories = async (req, res) => {
   try {
     const result = await sql.query`SELECT * FROM Danh_muc_hang`; // Lấy danh mục
     const categories = result.recordset.map((item) => item.Ten_danh_muc); // Lấy danh sách tên danh mục
-
     res.status(200).json(categories); // Trả về danh sách danh mục
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -415,7 +414,7 @@ const getProductSeller = async (req, res) => {
     }
 
     message.products = products;
-
+    console.log(message);
     res.status(200).json(message);
   } catch (error) {
     console.error(error);

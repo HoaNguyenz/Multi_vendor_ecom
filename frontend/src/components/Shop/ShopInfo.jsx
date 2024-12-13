@@ -29,7 +29,7 @@ const ShopInfo = ({ isOwner }) => {
     axios
       .get(`/product-seller`)
       .then((res) => {
-        setProducts(res.data);
+        setProducts(res.data.products || []);
         setIsProductLoading(false);
       })
       .catch((error) => {

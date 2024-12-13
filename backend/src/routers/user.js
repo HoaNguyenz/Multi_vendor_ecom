@@ -5,28 +5,27 @@ const { verifyToken } = require("../middleware");
 
 const userRouter = express.Router();
 
-userRouter.use(verifyToken);
+userRouter.get("/get-user-info/:username", verifyToken, controllers.getUserInfo);
+userRouter.put("/update-user", verifyToken, controllers.updateUser);
 
-userRouter.get("/get-user-info/:username", controllers.getUserInfo);
-userRouter.put("/update-user", controllers.updateUser);
+userRouter.post("/cart", verifyToken, controllers.addToCart);
+userRouter.delete("/cart", verifyToken, controllers.deleteFromCart);
+userRouter.get("/cart", verifyToken, controllers.getCart);
+userRouter.put("/cart", verifyToken, controllers.updateCart);
 
-userRouter.post("/cart", controllers.addToCart);
-userRouter.delete("/cart", controllers.deleteFromCart);
-userRouter.get("/cart", controllers.getCart);
-userRouter.put("/cart", controllers.updateCart);
-
-userRouter.post("/order", controllers.createOrder);
-userRouter.delete("/order", controllers.cancelOrder);
-userRouter.get("/order", controllers.getOrder);
+userRouter.post("/order", verifyToken, controllers.createOrder);
+userRouter.delete("/order", verifyToken, controllers.cancelOrder);
+userRouter.get("/order", verifyToken, controllers.getOrder);
 
 // Thêm địa chỉ giao hàng cho người dùng
-userRouter.post("/address", validations.addAddress, controllers.addAddress);
-userRouter.get("/address", controllers.getAddress);
+userRouter.post("/address", verifyToken, validations.addAddress, controllers.addAddress);
+userRouter.get("/address", verifyToken, controllers.getAddress);
 userRouter.put(
   "/address/:id",
+  verifyToken,
   validations.updateAddress,
   controllers.updateAddress
 );
-userRouter.delete("/address/:id", controllers.deleteAddress);
+userRouter.delete("/address/:id", verifyToken, controllers.deleteAddress);
 
 module.exports = userRouter;

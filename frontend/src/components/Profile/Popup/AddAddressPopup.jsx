@@ -16,7 +16,6 @@ const AddAddressPopup = ({ isOpen, onClose, onAdd }) => {
       quan_or_huyen: quanHuyen,
       tinh_or_tp: tinhTP,
     };
-    console.log(formData);
     try {
       const response = await axios.post("/address", formData);
 

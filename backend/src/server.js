@@ -15,8 +15,10 @@ function runServer() {
   app.use(cookieParser());
   app.use(
     cors({
-      origin: "http://localhost:3000", // Địa chỉ frontend
-      credentials: true, // Cho phép gửi cookie và thông tin xác thực
+      origin: "http://localhost:3000", // URL của React app
+      credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
 

@@ -12,6 +12,7 @@ const BestSellerProducts = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get('/best-selling-products'); // Đảm bảo URL đúng
+        console.log(response.data);
         setProducts(response.data);
       } catch (err) {
         setError(err.message || 'Lỗi khi lấy sản phẩm');

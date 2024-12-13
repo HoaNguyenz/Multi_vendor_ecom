@@ -67,7 +67,6 @@ const getSellerInfo = async (req, res) => {
     const result = await sql.query`SELECT *
     FROM (SELECT * FROM Nguoi_ban_va_Cua_hang WHERE Sdt = ${Sdt}) AS T JOIN Dia_chi ON Dia_chi = ID`;
     const seller = result.recordset[0];
-    console.log(seller);
     if (!seller) {
       return res.status(404).json({ message: "Người bán không tồn tại." });
     }
