@@ -314,7 +314,6 @@ const getDetailProduct = async (req, res) => {
                 SELECT * FROM Mau_ma_san_pham WHERE Ma_san_pham = ${Ma_san_pham}
             `;
     const mauMa = mauMaResult.recordset;
-    console.log(mauMa);
     const hinhAnhResult = await sql.query`
                 SELECT * FROM Hinh_anh_san_pham WHERE Ma_san_pham = ${Ma_san_pham}
             `;

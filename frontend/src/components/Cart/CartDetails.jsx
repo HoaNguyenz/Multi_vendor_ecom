@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "../../context/configAxios"; // Đảm bảo bạn có axios đã cấu hình
+import axios from "../../context/configAxios";
 import ProductDetailPopup from "../../components/Product/ProductDetailPopup";
 
 const CartDetails = () => {
@@ -15,13 +15,24 @@ const CartDetails = () => {
       try {
         const response = await axios.get("/cart"); // Gọi API lấy giỏ hàng
         setCartItems(response.data); // Cập nhật state với dữ liệu giỏ hàng
+        console.log(response.data);
       } catch (error) {
         console.error("Error fetching cart:", error);
       }
     };
 
     fetchCart();
-  }, []); // Gọi API chỉ khi component được render lần đầu
+  }, []);
+
+  const openPopup = (product) => {
+    setSelectedProduct(product);
+    setIsPopupOpen(true);
+  };
+
+  const closePopup = () => {
+    setSelectedProduct(null);
+    setIsPopupOpen(false);
+  };
 
   const handleIncrease = (id) => {
     const item = cartItems.find((item) => item.Mau_ma_sp === id);
@@ -41,29 +52,16 @@ const CartDetails = () => {
     }
   };
 
-  const handleSizeChange = (id, size) => {
-    const item = cartItems.find((item) => item.Mau_ma_sp === id);
-    if (item) {
-      item.Kich_co = size; // Thay đổi size
-      setCartItems([...cartItems]);
+  const handleRemove = async (id) => {
+    try {
+      const response = await axios.delete("/cart", { data: { mau_ma_sp: id } });
+      // Xử lý xóa sản phẩm khỏi giỏ hàng trong UI
+      setCartItems(cartItems.filter((item) => item.Mau_ma_sp !== id));
+      alert(response.data.message); // Hiển thị thông báo thành công
+    } catch (error) {
+      console.error("Error deleting product from cart:", error);
+      alert("Xóa sản phẩm khỏi giỏ hàng thất bại.");
     }
-  };
-
-  const calculateTotal = () => {
-    return cartItems.reduce(
-      (total, item) => total + item.Gia * item.So_luong,
-      0
-    );
-  };
-
-  const openPopup = (product) => {
-    setSelectedProduct(product);
-    setIsPopupOpen(true);
-  };
-
-  const closePopup = () => {
-    setSelectedProduct(null);
-    setIsPopupOpen(false);
   };
 
   return (
@@ -75,18 +73,16 @@ const CartDetails = () => {
           <div className="space-y-4">
             {cartItems.map((item) => (
               <div
-                key={item.Mau_ma_sp} // Sử dụng ID màu-kích cỡ làm key
+                key={item.Mau_ma_sp}
                 className="flex items-center justify-between border-b pb-4"
               >
                 <div className="flex items-center">
-                  {/* Hình ảnh sản phẩm */}
                   <img
                     src={item.Url_thumbnail || "https://via.placeholder.com/80"}
                     alt={item.Ten_san_pham}
                     className="w-16 h-16 rounded-md cursor-pointer hover:opacity-80 transition"
                     onClick={() => openPopup(item)} // Mở popup khi click vào ảnh
                   />
-                  {/* Thông tin sản phẩm */}
                   <div className="ml-4">
                     <p
                       className="font-medium text-blue-500 cursor-pointer hover:underline"
@@ -94,25 +90,10 @@ const CartDetails = () => {
                     >
                       {item.Ten_san_pham}
                     </p>
-                    <p className="text-sm text-gray-500">
-                      Giá: {item.Gia.toLocaleString()} VND
-                    </p>
-                    <div className="flex items-center mt-2 space-x-4">
-                      <label className="text-sm">
-                        Size:
-                        <select
-                          value={item.Kich_co || "M"}
-                          onChange={(e) =>
-                            handleSizeChange(item.Mau_ma_sp, e.target.value)
-                          }
-                          className="ml-2 border p-1 rounded-md"
-                        >
-                          <option value="S">S</option>
-                          <option value="M">M</option>
-                          <option value="L">L</option>
-                          <option value="XL">XL</option>
-                        </select>
-                      </label>
+                    <div className="flex space-x-4 text-sm text-gray-500">
+                      <p>Giá: {item.Gia.toLocaleString()} VND</p>
+                      <p>Size: {item.Kich_co}</p>
+                      <p>Màu sắc: {item.Mau_sac}</p>
                     </div>
                   </div>
                 </div>
@@ -135,7 +116,7 @@ const CartDetails = () => {
                     </button>
                   </div>
                   <button
-                    // onClick={() => removeFromCart(item.Mau_ma_sp)}
+                    onClick={() => handleRemove(item.Mau_ma_sp)} // Xử lý xóa sản phẩm
                     className="text-red-500 hover:underline"
                   >
                     Xóa
@@ -145,12 +126,14 @@ const CartDetails = () => {
             ))}
           </div>
 
-          {/* Tóm tắt và nút thanh toán */}
           <div className="mt-6 bg-gray-100 p-4 rounded-md shadow-md">
             <div className="flex justify-between mb-4">
               <p className="text-lg font-semibold">Tổng cộng:</p>
               <p className="text-lg font-bold">
-                {calculateTotal().toLocaleString()} VND
+                {cartItems
+                  .reduce((total, item) => total + item.Gia * item.So_luong, 0)
+                  .toLocaleString()}{" "}
+                VND
               </p>
             </div>
             <button
@@ -165,11 +148,19 @@ const CartDetails = () => {
         <p className="text-center text-gray-500">Giỏ hàng của bạn đang trống</p>
       )}
 
-      {/* Popup chi tiết sản phẩm */}
       {isPopupOpen && selectedProduct && (
         <ProductDetailPopup
           setOpen={closePopup}
           productData={selectedProduct}
+          updateCart={(updatedProduct) => {
+            setCartItems((prev) =>
+              prev.map((item) =>
+                item.Mau_ma_sp === updatedProduct.Mau_ma_sp
+                  ? updatedProduct
+                  : item
+              )
+            );
+          }}
         />
       )}
     </div>

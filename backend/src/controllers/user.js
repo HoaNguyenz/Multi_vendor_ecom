@@ -150,7 +150,8 @@ const getCart = async (req, res) => {
           mm.So_luong_ton_kho,
           sp.Ten_san_pham,
           sp.Gia,
-          sp.Url_thumbnail
+          sp.Url_thumbnail,
+          sp.Ma_san_pham
         FROM Chi_tiet_Gio_hang AS ctgh
         JOIN Mau_ma_san_pham AS mm ON ctgh.Mau_ma_sp = mm.ID
         JOIN San_pham AS sp ON mm.Ma_san_pham = sp.Ma_san_pham
@@ -165,37 +166,87 @@ const getCart = async (req, res) => {
   }
 };
 
+// const updateCart = async (req, res) => {
+//   const { mau_ma_sp, so_luong } = req.body;
+//   const sdt = req.user.id;
+//   if (so_luong <= 0) {
+//     throw new Error("Số lượng sản phẩm phải lớn hơn 0.");
+//   }
+
+//   try {
+//     const ton_kho_query = await sql.query(`
+//       SELECT So_luong_ton_kho 
+//       FROM Mau_ma_san_pham 
+//       WHERE ID = ${mau_ma_sp}
+//     `);
+//     const ton_kho = ton_kho_query.recordset[0]?.So_luong_ton_kho;
+//     console.log(ton_kho);
+//     if (!ton_kho) {
+//       throw new Error("Không tìm thấy sản phẩm với mã màu sắc này.");
+//     }
+//     // const ton_kho = mmsp.recordset[0].So_luong_ton_kho;
+//     if (so_luong > ton_kho) {
+//       throw new Error("Số lượng sản phẩm trong kho không đủ.");
+//     }
+
+//     const result = await sql.query(`
+//         UPDATE Chi_tiet_Gio_hang
+//         SET So_luong = ${so_luong}
+//         WHERE Sdt = ${sdt} AND Mau_ma_sp = ${mau_ma_sp}
+//       `);
+//     if (result.rowsAffected == 0) {
+//       throw new Error("Sản phẩm không tồn tại trong giỏ hàng.");
+//     }
+
+//     res.status(200).json({ message: "Đã cập nhật giỏ hàng." });
+//   } catch (error) {
+//     console.error(error);
+//     err = error.message;
+//     res.status(500).json({ message: "Cập nhật giỏ hàng thất bại", err });
+//   }
+// };
 const updateCart = async (req, res) => {
   const { mau_ma_sp, so_luong } = req.body;
   const sdt = req.user.id;
+
   if (so_luong <= 0) {
-    throw new Error("Số lượng sản phẩm phải lớn hơn 0.");
+    return res.status(400).json({ message: "Số lượng sản phẩm phải lớn hơn 0." });
   }
 
   try {
-    const mmsp = await sql.query(`select So_luong_ton_kho from Mau_ma_san_pham
-where ID = ${mau_ma_sp}`);
-    const ton_kho = mmsp.recordset[0].So_luong_ton_kho;
+    const ton_kho_query = await sql.query(`
+      SELECT So_luong_ton_kho 
+      FROM Mau_ma_san_pham 
+      WHERE ID = ${mau_ma_sp}
+    `);
+
+    const ton_kho = ton_kho_query.recordset[0]?.So_luong_ton_kho;
+      console.log(ton_kho);
+    if (!ton_kho) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại." });
+    }
+
     if (so_luong > ton_kho) {
-      throw new Error("Số lượng sản phẩm trong kho không đủ.");
+      return res.status(400).json({ message: "Số lượng sản phẩm trong kho không đủ." });
     }
 
     const result = await sql.query(`
-        UPDATE Chi_tiet_Gio_hang
-        SET So_luong = ${so_luong}
-        WHERE Sdt = ${sdt} AND Mau_ma_sp = ${mau_ma_sp}
-      `);
-    if (result.rowsAffected == 0) {
-      throw new Error("Sản phẩm không tồn tại trong giỏ hàng.");
+      UPDATE Chi_tiet_Gio_hang
+      SET So_luong = ${so_luong}
+      WHERE Sdt = '${sdt}' AND Mau_ma_sp = ${mau_ma_sp}
+    `);
+
+    if (result.rowsAffected[0] === 0) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại trong giỏ hàng." });
     }
 
     res.status(200).json({ message: "Đã cập nhật giỏ hàng." });
   } catch (error) {
-    console.error(error);
-    err = error.message;
-    res.status(500).json({ message: "Cập nhật giỏ hàng thất bại", err });
+    console.error("Error in updateCart:", error.message, error.stack);
+    res.status(500).json({ message: "Cập nhật giỏ hàng thất bại", error: error.message });
   }
 };
+
 
 const createOrder = async (req, res) => {
   const { dia_chi_giao_hang, chi_tiet_don_hang, ma_cua_hang } = req.body;
