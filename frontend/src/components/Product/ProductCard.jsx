@@ -1,19 +1,12 @@
 import React, { useState } from "react";
-import { FaCartPlus, FaRegEye } from "react-icons/fa";
-import ProductDetailPopup from "./ProductDetailPopup";
-import { useCart } from "../../context/CartContext";
+import { useNavigate } from "react-router-dom";
 
 const ProductCard = ({ product }) => {
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false); // Thêm trạng thái hover
-  const { addToCart } = useCart();
+  const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
-  const openPopup = () => {
-    setIsPopupOpen(true);
-  };
-
-  const closePopup = () => {
-    setIsPopupOpen(false);
+  const handleCardClick = () => {
+    navigate(`/product/${product.Ma_san_pham}`);
   };
 
   return (
@@ -21,6 +14,7 @@ const ProductCard = ({ product }) => {
       className="w-full max-w-[300px] bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow relative"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleCardClick}
     >
       <div className="relative">
         {/* Hình ảnh sản phẩm */}
@@ -28,26 +22,15 @@ const ProductCard = ({ product }) => {
           src={product.Url_thumbnail || "https://via.placeholder.com/150"}
           alt={product.Ten_san_pham}
           className="w-full h-[200px] object-cover rounded-lg cursor-pointer"
-          onClick={openPopup} // Mở popup khi bấm vào hình
         />
 
         {/* Hiển thị thông tin nhanh khi hover */}
         {isHovered && (
           <div className="absolute inset-0 bg-black bg-opacity-50 text-white flex flex-col justify-center items-center p-4 rounded-lg">
             <p className="text-lg font-semibold">{product.Ten_san_pham}</p>
-            <p className="text-sm mt-2">{product.Mo_ta_ngan || "Mô tả ngắn"}</p>
+            <p className="text-sm mt-2">{product.Mo_ta || "Mô tả ngắn"}</p>
           </div>
         )}
-
-        <div className="absolute top-2 right-2 flex space-x-2">
-          {/* Nút thêm vào giỏ */}
-          <button
-            className="p-2 bg-white rounded-full hover:bg-gray-200"
-            onClick={() => addToCart(product)}
-          >
-            <FaCartPlus className="h-5 w-5 text-gray-700" />
-          </button>
-        </div>
       </div>
 
       {/* Thông tin sản phẩm */}
@@ -79,17 +62,10 @@ const ProductCard = ({ product }) => {
 
         {/* Giá sản phẩm */}
         <div className="flex justify-between items-center mt-2">
-          <span className="text-lg font-semibold text-gray-900">{product.Gia} VND</span>
+          <span className="text-lg font-semibold text-gray-900">{product.Gia.toLocaleString()} VND</span>
         </div>
       </div>
 
-      {/* Popup chi tiết sản phẩm */}
-      {isPopupOpen && (
-        <ProductDetailPopup
-          setOpen={closePopup}
-          productData={product}
-        />
-      )}
     </div>
   );
 };

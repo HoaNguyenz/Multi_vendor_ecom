@@ -6,29 +6,31 @@ import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 const ProductDetails = () => {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [productImg, setProductImg] = useState([]);
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
+  const [stock, setStock] = useState(null); // Tồn kho của tổ hợp được chọn
+  const [currentImageIndex, setCurrentImageIndex] = useState(0); // State để theo dõi hình ảnh hiện tại
   const [quantity, setQuantity] = useState(1);
-  const [stock, setStock] = useState(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`/product-detail/${id}`);
-        const productData = response.data;
-        setProduct(productData);
+        setProduct(response.data);
+        console.log(response.data);
+        setProductImg(response.data.hinh_anh_san_phams);
 
-        if (productData.mau_ma_san_phams.length > 0) {
-          const initialColor = productData.mau_ma_san_phams[0].mau_sac;
-          const initialSize = productData.mau_ma_san_phams[0].kich_co;
-          setSelectedColor(initialColor);
-          setSelectedSize(initialSize);
+        if (response.data.mau_ma_san_phams.length > 0) {
+          const firstColor = response.data.mau_ma_san_phams[0].mau_sac;
+          const firstSize = response.data.mau_ma_san_phams[0].kich_co;
+          setSelectedColor(firstColor);
+          setSelectedSize(firstSize);
 
-          const initialStock = productData.mau_ma_san_phams.find(
+          // Lấy tồn kho ban đầu
+          const initialStock = response.data.mau_ma_san_phams.find(
             (option) =>
-              option.mau_sac === initialColor &&
-              option.kich_co === initialSize
+              option.mau_sac === firstColor && option.kich_co === firstSize
           )?.so_luong_ton_kho;
           setStock(initialStock);
         }
@@ -42,18 +44,45 @@ const ProductDetails = () => {
 
   const handleColorChange = (color) => {
     setSelectedColor(color);
-    setSelectedSize("");
-    setStock(null);
+    setSelectedSize(""); // Reset kích cỡ khi chọn màu mới
+    setStock(null); // Reset tồn kho
   };
 
   const handleSizeChange = (size) => {
     setSelectedSize(size);
+
+    // Cập nhật tồn kho khi chọn kích cỡ
     const stockValue = product.mau_ma_san_phams.find(
       (option) => option.mau_sac === selectedColor && option.kich_co === size
     )?.so_luong_ton_kho;
     setStock(stockValue);
   };
 
+  // Hàm chuyển sang hình ảnh tiếp theo
+  const nextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % productImg.length);
+  };
+
+  // Hàm quay lại hình ảnh trước
+  const prevImage = () => {
+    setCurrentImageIndex(
+      (prevIndex) => (prevIndex - 1 + productImg.length) % productImg.length
+    );
+  };
+
+  if (!product) {
+    return <div className="text-center text-gray-500">Loading...</div>;
+  }
+
+  // Lấy danh sách màu sắc duy nhất
+  const uniqueColors = Array.from(
+    new Set(product.mau_ma_san_phams.map((option) => option.mau_sac))
+  );
+
+  // Lọc kích cỡ dựa trên màu sắc đã chọn
+  const sizesForSelectedColor = product.mau_ma_san_phams.filter(
+    (option) => option.mau_sac === selectedColor
+  );
   const handleQuantityChange = (operation) => {
     setQuantity((prevQuantity) => {
       if (operation === "increase" && prevQuantity < stock) {
@@ -64,144 +93,152 @@ const ProductDetails = () => {
       return prevQuantity;
     });
   };
-
-  if (!product) {
-    return <div className="text-center text-gray-500">Loading...</div>;
-  }
-
-  const uniqueColors = Array.from(
-    new Set(product.mau_ma_san_phams.map((option) => option.mau_sac))
-  );
-
-  const sizesForSelectedColor = product.mau_ma_san_phams.filter(
-    (option) => option.mau_sac === selectedColor
-  );
+  const addToCart = async () => {
+    try {
+      const colorSizeOption = product.mau_ma_san_phams.find(
+        (option) =>
+          option.mau_sac === selectedColor && option.kich_co === selectedSize
+      );
+      if (!colorSizeOption) {
+        alert("Vui lòng chọn màu và kích cỡ.");
+        return;
+      }
+      const data = {
+        mau_ma_sp: colorSizeOption.id, // Mã màu-kích cỡ
+        so_luong: quantity, // Số lượng sản phẩm
+      };
+      console.log(data);
+      const response = await axios.post("/cart", data);
+      alert(response.data.message); // Hiển thị thông báo từ backend
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Thêm sản phẩm vào giỏ thất bại.");
+    }
+  };
 
   return (
-    <div className="bg-gray-50 min-h-screen py-10 px-5">
-      <div className="max-w-7xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-        <div className="md:flex">
-          {/* Image Section */}
-          <div className="md:w-1/2 relative">
-            <div className="relative w-full h-96">
-              <img
-                src={product.hinh_anh_san_phams[currentImageIndex]}
-                alt={`Product ${currentImageIndex + 1}`}
-                className="w-full h-full object-cover rounded-lg border border-gray-200"
-              />
-              <button
-                onClick={() =>
-                  setCurrentImageIndex(
-                    (prev) =>
-                      (prev - 1 + product.hinh_anh_san_phams.length) %
-                      product.hinh_anh_san_phams.length
-                  )
-                }
-                className="absolute top-1/2 left-0 transform -translate-y-1/2 bg-gray-200 rounded-full p-2 hover:bg-gray-300"
-              >
-                <IoIosArrowBack size={24} />
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentImageIndex(
-                    (prev) =>
-                      (prev + 1) % product.hinh_anh_san_phams.length
-                  )
-                }
-                className="absolute top-1/2 right-0 transform -translate-y-1/2 bg-gray-200 rounded-full p-2 hover:bg-gray-300"
-              >
-                <IoIosArrowForward size={24} />
-              </button>
-            </div>
+    <div className="flex flex-col md:flex-row gap-8 p-6">
+      {/* Hiển thị hình ảnh hiện tại */}
+      <div className="flex-shrink-0 relative">
+        <div className="flex flex-col items-center gap-4 w-[50vh] h-[50vh] md:w-[35vw] md:h-[35vw] relative">
+          <img
+            className="w-full h-full object-contain rounded-lg border border-gray-200"
+            src={productImg[currentImageIndex]}
+            alt={`Hình ảnh sản phẩm ${currentImageIndex + 1}`}
+          />
+
+          {/* Các nút chuyển hình ảnh */}
+          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 px-4">
+            <button
+              onClick={prevImage}
+              className="bg-gray-100 rounded-md hover:bg-blue-200 pl-2 pr-2 pt-4 pb-4"
+            >
+              <IoIosArrowBack className="md:size-8" color="black" />
+            </button>
           </div>
 
-          {/* Details Section */}
-          <div className="md:w-1/2 p-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">{product.Ten_san_pham}</h1>
-            <p className="text-xl font-semibold text-red-500 mb-6">
-              {product.Gia.toLocaleString()}₫
-            </p>
-            <p className="text-gray-600 mb-6">{product.Mo_ta}</p>
+          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 px-4">
+            <button
+              onClick={nextImage}
+              className="bg-gray-100 rounded-md hover:bg-blue-200 pl-2 pr-2 pt-4 pb-4"
+            >
+              <IoIosArrowForward className="md:size-8" color="black" />
+            </button>
+          </div>
 
-            <div className="mb-6">
-              <h4 className="text-lg font-medium mb-2">Màu sắc:</h4>
-              <div className="flex gap-3">
-                {uniqueColors.map((color, index) => (
-                  <button
-                    key={index}
-                    className={`px-4 py-2 border rounded-lg ${
-                      selectedColor === color
-                        ? "border-blue-500 bg-blue-100"
-                        : "border-gray-300 hover:bg-gray-100"
-                    }`}
-                    onClick={() => handleColorChange(color)}
-                  >
-                    {color}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-lg font-medium mb-2">Kích cỡ:</h4>
-              <div className="flex gap-3">
-                {sizesForSelectedColor.map((option, index) => (
-                  <button
-                    key={index}
-                    className={`px-4 py-2 border rounded-lg ${
-                      selectedSize === option.kich_co
-                        ? "border-blue-500 bg-blue-100"
-                        : "border-gray-300 hover:bg-gray-100"
-                    }`}
-                    onClick={() => handleSizeChange(option.kich_co)}
-                  >
-                    {option.kich_co}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {stock !== null && (
-              <p className="text-gray-700 mb-6">
-                Tồn kho: <span className="font-bold">{stock}</span>
-              </p>
-            )}
-
-            <div className="flex items-center mb-6">
-              <button
-                className="px-4 py-2 bg-gray-100 rounded-l-lg hover:bg-gray-200"
-                onClick={() => handleQuantityChange("decrease")}
-              >
-                -
-              </button>
-              <input
-                type="number"
-                value={quantity}
-                readOnly
-                className="w-16 text-center border-t border-b border-gray-300"
-              />
-              <button
-                className="px-4 py-2 bg-gray-100 rounded-r-lg hover:bg-gray-200"
-                onClick={() => handleQuantityChange("increase")}
-              >
-                +
-              </button>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                className="w-1/2 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition"
-              >
-                Thêm vào giỏ hàng
-              </button>
-              <button
-                className="w-1/2 bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition"
-              >
-                Mua ngay
-              </button>
-            </div>
+          {/* Các chấm biểu thị vị trí hiện tại */}
+          <div className="flex justify-center">
+            {productImg.map((_, index) => (
+              <div
+                key={index}
+                className={`w-3 h-3 mx-1 rounded-full ${
+                  currentImageIndex === index ? "bg-blue-500" : "bg-gray-300"
+                }`}
+              ></div>
+            ))}
           </div>
         </div>
+      </div>
+
+      <div className="flex-1">
+        <h1 className="text-2xl font-semibold mb-4">{product.Ten_san_pham}</h1>
+        <p className="text-xl text-red-500 font-bold mb-4">
+          {product.Gia.toLocaleString()}₫
+        </p>
+        <p className="text-gray-600 mb-6">{product.Mo_ta}</p>
+
+        <div className="mb-6">
+          <h4 className="text-lg font-medium mb-2">Màu sắc:</h4>
+          <div className="flex gap-2">
+            {uniqueColors.map((color, index) => (
+              <button
+                key={index}
+                className={`px-4 py-2 border rounded-md ${
+                  selectedColor === color
+                    ? "border-blue-500 bg-blue-100"
+                    : "border-gray-300"
+                }`}
+                onClick={() => handleColorChange(color)}
+              >
+                {color}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h4 className="text-lg font-medium mb-2">Kích cỡ:</h4>
+          <div className="flex gap-2">
+            {sizesForSelectedColor.map((option, index) => (
+              <button
+                key={index}
+                className={`px-4 py-2 border rounded-md ${
+                  selectedSize === option.kich_co
+                    ? "border-blue-500 bg-blue-100"
+                    : "border-gray-300"
+                }`}
+                onClick={() => handleSizeChange(option.kich_co)}
+              >
+                {option.kich_co}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {stock !== null && (
+          <p className="text-gray-700 mb-6">
+            Tồn kho: <span className="font-bold">{stock}</span>
+          </p>
+        )}
+
+        {/* Thêm phần input cho số lượng */}
+        <div className="flex items-center mb-6">
+          <button
+            className="px-4 py-2 bg-gray-100 rounded-l-md"
+            onClick={() => handleQuantityChange("decrease")}
+          >
+            -
+          </button>
+          <input
+            type="number"
+            value={quantity}
+            onChange={(e) => setQuantity(Math.max(1, e.target.value))}
+            className="w-16 text-center border-gray-300 border px-2 py-1"
+            min="1"
+          />
+          <button
+            className="px-4 py-2 bg-gray-100 rounded-r-md"
+            onClick={() => handleQuantityChange("increase")}
+          >
+            +
+          </button>
+        </div>
+        <button
+          onClick={addToCart}
+          className="w-full md:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-md hover:bg-green-600"
+        >
+          Thêm vào giỏ
+        </button>
       </div>
     </div>
   );
