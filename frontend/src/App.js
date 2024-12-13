@@ -10,6 +10,7 @@ import UserRoute from './context/userRoute';
 import SellerRoute from './context/sellerRoute';
 import { CartProvider } from "./context/CartContext";
 import CheckoutPage from "./pages/CheckoutPage";
+import ProductDetails from './components/Product/ProductDetails';
 
 const App = () => {
   return (
@@ -24,8 +25,8 @@ const App = () => {
           <Route path='/verify' element={<VerifyPage />} />
           <Route path='/' element={<HomePage />} />
           <Route path='/search' element={<SearchProductPage />} />
-          <Route path='/product/:id' element={<ProductPage />} />
-          
+          <Route path="/product/:id" element={<ProductDetails />} />
+
           {/* Các route yêu cầu đăng nhập */} 
           <Route path='/shop-dashboard' element={<SellerRoute element={<ShopDashboardPage />} />} />
           <Route path='/shop-orders' element={<SellerRoute element={<ShopOrdersPage />} />} />
