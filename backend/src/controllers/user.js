@@ -368,6 +368,77 @@ const deleteAddress = async (req, res) => {
   }
 };
 
+// Đánh giá sản phẩm
+const addReview =  async (req, res) => {
+  const { sdt, maSanPham, diemDanhGia, nhanXet, urlHinhAnh } = req.body;
+
+  // Validate input
+  if (!sdt || !maSanPham || !diemDanhGia || diemDanhGia < 1 || diemDanhGia > 5) {
+    return res.status(400).json({ message: 'Dữ liệu không hợp lệ!' });
+  }
+
+  try {
+    // Kiểm tra sản phẩm đã được giao hay chưa
+    const checkQuery = `
+      SELECT COUNT(*) AS count
+      FROM Don_hang dh
+      INNER JOIN Chi_tiet_don_hang ctdh ON dh.Ma_don_hang = ctdh.Ma_don_hang
+      WHERE dh.Sdt = @sdt AND ctdh.Mau_ma_sp = @maSanPham AND dh.Trang_thai = N'Đã giao thành công'
+    `;
+
+    const checkRequest = new sql.Request();
+    checkRequest.input('sdt', sql.Char(10), sdt);
+    checkRequest.input('maSanPham', sql.BigInt, maSanPham);
+
+    const checkResult = await checkRequest.query(checkQuery);
+    if (checkResult.recordset[0].count === 0) {
+      return res.status(400).json({ message: 'Sản phẩm chưa được giao thành công, không thể đánh giá!' });
+    }
+// Thêm đánh giá
+    const insertQuery = `
+    INSERT INTO Danh_gia (Sdt, Ma_san_pham, Thoi_gian, Diem_danh_gia, Nhan_xet, Url_hinh_anh)
+    VALUES (@sdt, @maSanPham, GETDATE(), @diemDanhGia, @nhanXet, @urlHinhAnh)
+  `;
+
+    const request = new sql.Request();
+    request.input('sdt', sql.Char(10), sdt);
+    request.input('maSanPham', sql.BigInt, maSanPham);
+    request.input('diemDanhGia', sql.TinyInt, diemDanhGia);
+    request.input('nhanXet', sql.NText, nhanXet || null);
+    request.input('urlHinhAnh', sql.VarChar(200), urlHinhAnh || null);
+
+    await request.query(insertQuery);
+    res.status(201).json({ message: 'Đánh giá đã được thêm thành công!' });
+  } catch (err) {
+    console.error('Lỗi khi đánh giá sản phẩm.', err);
+    res.status(500).json({ message: 'Lỗi server!' });
+  }
+};
+
+
+// Xem đánh giá của một sản phẩm
+const getReview = async (req, res) => {
+  const { maSanPham } = req.params;
+
+  try {
+    const query = `
+      SELECT Sdt, Diem_danh_gia AS DiemDanhGia, Nhan_xet AS NhanXet, Url_hinh_anh AS UrlHinhAnh, Thoi_gian AS ThoiGian
+      FROM Danh_gia
+      WHERE Ma_san_pham = @maSanPham
+      ORDER BY Thoi_gian DESC
+    `;
+
+    const request = new sql.Request();
+    request.input('maSanPham', sql.BigInt, maSanPham);
+
+    const result = await request.query(query);
+    res.status(200).json(result.recordset);
+  } catch (err) {
+    console.error('Lỗi khi xem đánh giá sản phẩm.', err);
+    res.status(500).json({ message: 'Lỗi server!' });
+  }
+};
+
 module.exports = {
   getUserInfo,
   updateUser,
@@ -382,6 +453,8 @@ module.exports = {
   getAddress,
   updateAddress,
   deleteAddress,
+  addReview,
+  getReview,
 };
 
 // CREATE DATABASE eCommerce;
