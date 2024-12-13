@@ -31,7 +31,7 @@ const AllShopProduct = () => {
   const fetchProducts = async () => {
     try {
       const response = await axios.get("/product-seller");
-      setProducts(response.data); // Lưu danh sách sản phẩm vào state
+      setProducts(response.data.products); // Lưu danh sách sản phẩm vào state
       setLoading(false);
     } catch (error) {
       console.error("Lỗi khi lấy sản phẩm:", error);
@@ -124,9 +124,16 @@ const AllShopProduct = () => {
   ];
 
   // Hàm xử lý xóa sản phẩm
-  const handleDelete = (productId) => {
+  const handleDelete = async (productId) =>{
+    try {
     console.log("Xóa sản phẩm có mã:", productId);
-    // Thực hiện gọi API xóa sản phẩm tại đây
+    const response = await axios.delete(`/delete-product/${productId}`);
+    if (response.status === 201) {
+      console.log("Xóa sản phẩm thanh công");
+    }
+  } catch (error) {
+    console.error("Error deleting product", error);
+  }
   };
 
   return (
