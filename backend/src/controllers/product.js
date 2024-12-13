@@ -236,11 +236,7 @@ const searchProductsbyBao = async (req, res) => {
     let query = `
         SELECT *
         FROM San_pham sp
-<<<<<<< HEAD
-        WHERE 1 = 1
-=======
         WHERE 1 = 1 AND Ma_cua_hang != -1
->>>>>>> 41766a6e41c0edc9dc875112e2eebaee9e46e02e
       `;
 
     // Thêm các điều kiện lọc

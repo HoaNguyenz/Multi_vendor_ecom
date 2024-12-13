@@ -17,6 +17,7 @@ const ProfilePage = () => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isAddAddressPopupOpen, setIsAddAddressPopupOpen] = useState(false);
   const [isEditAddressPopupOpen, setIsEditAddressPopupOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState(null);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -172,7 +173,10 @@ const ProfilePage = () => {
                   </div>
                   <div className="flex space-x-2">
                     <button
-                      onClick={() => setIsEditAddressPopupOpen(true)}
+                      onClick={() => {
+                        setSelectedAddress(address);
+                        setIsEditAddressPopupOpen(true);
+                      }}
                       className="text-blue-500 hover:text-blue-700"
                     >
                       <CiEdit size={30}></CiEdit>
@@ -212,7 +216,16 @@ const ProfilePage = () => {
         <AddAddressPopup
           isOpen={isAddAddressPopupOpen}
           onClose={() => setIsAddAddressPopupOpen(false)}
-          onAdd={fetchUserInfo} // Gọi fetchUserInfo để lấy lại danh sách địa chỉ
+          onAdd={fetchUserInfo}
+        />
+      )}
+
+      {isEditAddressPopupOpen && (
+        <EditAddressPopup
+          isOpen={isEditAddressPopupOpen}
+          onClose={() => setIsEditAddressPopupOpen(false)}
+          address={selectedAddress}
+          onEdit={fetchUserInfo}
         />
       )}
     </div>

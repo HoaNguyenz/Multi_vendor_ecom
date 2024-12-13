@@ -21,10 +21,10 @@ async function addAddress(req, res, next) {
 
 async function updateAddress(req, res, next) {
   const schema = Joi.object({
-    So_nha: Joi.string().required().trim().strict(),
-    Phuong_or_Xa: Joi.string().required().trim().strict(),
-    Quan_or_Huyen: Joi.string().required().trim().strict(),
-    Tinh_or_TP: Joi.string().required().trim().strict(),
+    so_nha: Joi.string().required().trim().strict(),
+    phuong_or_xa: Joi.string().required().trim().strict(),
+    quan_or_huyen: Joi.string().required().trim().strict(),
+    tinh_or_tp: Joi.string().required().trim().strict(),
   });
 
   try {
