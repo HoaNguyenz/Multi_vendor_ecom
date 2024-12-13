@@ -12,6 +12,7 @@ import ProfilePage from './components/Profile/ProfilePage';
 import Cart from './components/Cart/MiniCart'; 
 import SellerSignup from './components/Signup/SellerSignup';
 import SearchProductPage from "./pages/SearchProductPage"
+import ProductPage from "./pages/ProductPage"
 
 
 export{
@@ -28,5 +29,6 @@ export{
     ProfilePage,
     Cart,
     SellerSignup,
-    SearchProductPage
+    SearchProductPage,
+    ProductPage
 };
