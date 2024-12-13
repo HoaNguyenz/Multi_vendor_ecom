@@ -3,13 +3,12 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import {LoginPage, SignupPage, HomePage, 
   ShopDashboardPage, ShopOrdersPage, ShopProductsPage, 
   ShopInfoPage, VerifyPage, ForgotPasswordPage,
-ResetPasswordPage, ProfilePage, Cart, SellerSignup, SearchProductPage, ProductPage} from "./Routes.js"
+ResetPasswordPage, ProfilePage, Cart, SellerSignup, SearchProductPage, ProductPage, CartPage} from "./Routes.js"
 import "./App.css"
 import { AuthProvider } from "./context/AuthContext";
 import UserRoute from './context/userRoute';
 import SellerRoute from './context/sellerRoute';
 import { CartProvider } from "./context/CartContext";
-import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 
 const App = () => {

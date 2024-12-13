@@ -11,12 +11,14 @@ const ProductPage = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [stock, setStock] = useState(null); // Tồn kho của tổ hợp được chọn
   const [currentImageIndex, setCurrentImageIndex] = useState(0); // State để theo dõi hình ảnh hiện tại
+  const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`/product-detail/${id}`);
         setProduct(response.data);
+        console.log(response.data);
         setProductImg(response.data.hinh_anh_san_phams);
 
         if (response.data.mau_ma_san_phams.length > 0) {
@@ -81,6 +83,41 @@ const ProductPage = () => {
   const sizesForSelectedColor = product.mau_ma_san_phams.filter(
     (option) => option.mau_sac === selectedColor
   );
+  const handleQuantityChange = (operation) => {
+    setQuantity((prevQuantity) => {
+      if (operation === "increase" && prevQuantity < stock) {
+        return prevQuantity + 1;
+      } else if (operation === "decrease" && prevQuantity > 1) {
+        return prevQuantity - 1;
+      }
+      return prevQuantity;
+    });
+  };
+
+  const addToCart = async () => {
+    try {
+      const colorSizeOption = product.mau_ma_san_phams.find(
+        (option) =>
+          option.mau_sac === selectedColor && option.kich_co === selectedSize
+      );
+
+      if (!colorSizeOption) {
+        alert("Vui lòng chọn màu và kích cỡ.");
+        return;
+      }
+
+      const data = {
+        mau_ma_sp: colorSizeOption.id, // Mã màu-kích cỡ
+        so_luong: quantity, // Số lượng sản phẩm
+      };
+      console.log(data);
+      const response = await axios.post("/cart", data);
+      alert(response.data.message); // Hiển thị thông báo từ backend
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Thêm sản phẩm vào giỏ thất bại.");
+    }
+  };
 
   return (
     <div className="flex flex-col md:flex-row gap-8 p-6">
@@ -177,7 +214,32 @@ const ProductPage = () => {
           </p>
         )}
 
-        <button className="w-full md:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-md hover:bg-green-600">
+        {/* Thêm phần input cho số lượng */}
+        <div className="flex items-center mb-6">
+          <button
+            className="px-4 py-2 bg-gray-100 rounded-l-md"
+            onClick={() => handleQuantityChange("decrease")}
+          >
+            -
+          </button>
+          <input
+            type="number"
+            value={quantity}
+            onChange={(e) => setQuantity(Math.max(1, e.target.value))}
+            className="w-16 text-center border-gray-300 border px-2 py-1"
+            min="1"
+          />
+          <button
+            className="px-4 py-2 bg-gray-100 rounded-r-md"
+            onClick={() => handleQuantityChange("increase")}
+          >
+            +
+          </button>
+        </div>
+        <button
+          onClick={addToCart}
+          className="w-full md:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-md hover:bg-green-600"
+        >
           Thêm vào giỏ
         </button>
       </div>

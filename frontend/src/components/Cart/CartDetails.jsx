@@ -1,36 +1,57 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
-import ProductDetailPopup from "../components/Product/ProductDetailPopup";
+import axios from "../../context/configAxios"; // Đảm bảo bạn có axios đã cấu hình
+import ProductDetailPopup from "../../components/Product/ProductDetailPopup";
 
-const CartPage = () => {
-  const { cartItems, updateCartItemQuantity, removeFromCart } = useCart();
+const CartDetails = () => {
   const navigate = useNavigate();
+  const [cartItems, setCartItems] = useState([]); // Dữ liệu giỏ hàng từ API
   const [selectedProduct, setSelectedProduct] = useState(null); // Sản phẩm đang được chọn
   const [isPopupOpen, setIsPopupOpen] = useState(false); // Trạng thái của popup
 
+  // Lấy thông tin giỏ hàng từ API
+  useEffect(() => {
+    const fetchCart = async () => {
+      try {
+        const response = await axios.get("/cart"); // Gọi API lấy giỏ hàng
+        setCartItems(response.data); // Cập nhật state với dữ liệu giỏ hàng
+      } catch (error) {
+        console.error("Error fetching cart:", error);
+      }
+    };
+
+    fetchCart();
+  }, []); // Gọi API chỉ khi component được render lần đầu
+
   const handleIncrease = (id) => {
-    const item = cartItems.find((item) => item.id === id);
-    if (item) updateCartItemQuantity(id, item.quantity + 1);
+    const item = cartItems.find((item) => item.Mau_ma_sp === id);
+    if (item) {
+      // Cập nhật số lượng sản phẩm trong giỏ hàng
+      item.So_luong += 1;
+      setCartItems([...cartItems]);
+    }
   };
 
   const handleDecrease = (id) => {
-    const item = cartItems.find((item) => item.id === id);
-    if (item.quantity > 1) {
-      updateCartItemQuantity(id, item.quantity - 1);
+    const item = cartItems.find((item) => item.Mau_ma_sp === id);
+    if (item && item.So_luong > 1) {
+      // Giảm số lượng sản phẩm trong giỏ hàng
+      item.So_luong -= 1;
+      setCartItems([...cartItems]);
     }
   };
 
   const handleSizeChange = (id, size) => {
-    const item = cartItems.find((item) => item.id === id);
+    const item = cartItems.find((item) => item.Mau_ma_sp === id);
     if (item) {
-      item.size = size; // Thay đổi size
+      item.Kich_co = size; // Thay đổi size
+      setCartItems([...cartItems]);
     }
   };
 
   const calculateTotal = () => {
     return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) => total + item.Gia * item.So_luong,
       0
     );
   };
@@ -54,14 +75,14 @@ const CartPage = () => {
           <div className="space-y-4">
             {cartItems.map((item) => (
               <div
-                key={item.id}
+                key={item.Mau_ma_sp} // Sử dụng ID màu-kích cỡ làm key
                 className="flex items-center justify-between border-b pb-4"
               >
                 <div className="flex items-center">
                   {/* Hình ảnh sản phẩm */}
                   <img
-                    src={item.image || "https://via.placeholder.com/80"}
-                    alt={item.name}
+                    src={item.Url_thumbnail || "https://via.placeholder.com/80"}
+                    alt={item.Ten_san_pham}
                     className="w-16 h-16 rounded-md cursor-pointer hover:opacity-80 transition"
                     onClick={() => openPopup(item)} // Mở popup khi click vào ảnh
                   />
@@ -71,18 +92,18 @@ const CartPage = () => {
                       className="font-medium text-blue-500 cursor-pointer hover:underline"
                       onClick={() => openPopup(item)} // Mở popup khi click vào tên
                     >
-                      {item.name}
+                      {item.Ten_san_pham}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Giá: {item.price.toLocaleString()} VND
+                      Giá: {item.Gia.toLocaleString()} VND
                     </p>
                     <div className="flex items-center mt-2 space-x-4">
                       <label className="text-sm">
                         Size:
                         <select
-                          value={item.size || "M"}
+                          value={item.Kich_co || "M"}
                           onChange={(e) =>
-                            handleSizeChange(item.id, e.target.value)
+                            handleSizeChange(item.Mau_ma_sp, e.target.value)
                           }
                           className="ml-2 border p-1 rounded-md"
                         >
@@ -100,21 +121,21 @@ const CartPage = () => {
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center">
                     <button
-                      onClick={() => handleDecrease(item.id)}
+                      onClick={() => handleDecrease(item.Mau_ma_sp)}
                       className="p-2 bg-gray-200 rounded-md"
                     >
                       -
                     </button>
-                    <span className="mx-2">{item.quantity}</span>
+                    <span className="mx-2">{item.So_luong}</span>
                     <button
-                      onClick={() => handleIncrease(item.id)}
+                      onClick={() => handleIncrease(item.Mau_ma_sp)}
                       className="p-2 bg-gray-200 rounded-md"
                     >
                       +
                     </button>
                   </div>
                   <button
-                    onClick={() => removeFromCart(item.id)}
+                    // onClick={() => removeFromCart(item.Mau_ma_sp)}
                     className="text-red-500 hover:underline"
                   >
                     Xóa
@@ -155,4 +176,4 @@ const CartPage = () => {
   );
 };
 
-export default CartPage;
+export default CartDetails;

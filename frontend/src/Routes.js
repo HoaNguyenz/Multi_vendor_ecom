@@ -13,6 +13,7 @@ import Cart from './components/Cart/MiniCart';
 import SellerSignup from './components/Signup/SellerSignup';
 import SearchProductPage from "./pages/SearchProductPage"
 import ProductPage from "./pages/ProductPage"
+import CartPage from "./pages/CartPage"
 
 
 export{
@@ -30,5 +31,6 @@ export{
     Cart,
     SellerSignup,
     SearchProductPage,
-    ProductPage
+    ProductPage,
+    CartPage
 };

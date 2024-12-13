@@ -314,7 +314,7 @@ const getDetailProduct = async (req, res) => {
                 SELECT * FROM Mau_ma_san_pham WHERE Ma_san_pham = ${Ma_san_pham}
             `;
     const mauMa = mauMaResult.recordset;
-
+    console.log(mauMa);
     const hinhAnhResult = await sql.query`
                 SELECT * FROM Hinh_anh_san_pham WHERE Ma_san_pham = ${Ma_san_pham}
             `;
@@ -324,6 +324,7 @@ const getDetailProduct = async (req, res) => {
       mau_sac: item.Mau_sac,
       kich_co: item.Kich_co,
       so_luong_ton_kho: item.So_luong_ton_kho,
+      id: item.ID,
     }));
     product.hinh_anh_san_phams = hinhAnh.map((item) => item.Url_hinh_anh);
 
