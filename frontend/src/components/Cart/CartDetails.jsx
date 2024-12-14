@@ -8,6 +8,8 @@ const CartDetails = () => {
   const [cartItems, setCartItems] = useState([]); // Dữ liệu giỏ hàng từ API
   const [selectedProduct, setSelectedProduct] = useState(null); // Sản phẩm đang được chọn
   const [isPopupOpen, setIsPopupOpen] = useState(false); // Trạng thái của popup
+  const [selectedItems, setSelectedItems] = useState([]); // Danh sách các sản phẩm được chọn
+  const [selectAll, setSelectAll] = useState(false); // Trạng thái chọn tất cả
 
   // Lấy thông tin giỏ hàng từ API
   useEffect(() => {
@@ -37,7 +39,6 @@ const CartDetails = () => {
   const handleIncrease = (id) => {
     const item = cartItems.find((item) => item.Mau_ma_sp === id);
     if (item) {
-      // Cập nhật số lượng sản phẩm trong giỏ hàng
       item.So_luong += 1;
       setCartItems([...cartItems]);
     }
@@ -46,7 +47,6 @@ const CartDetails = () => {
   const handleDecrease = (id) => {
     const item = cartItems.find((item) => item.Mau_ma_sp === id);
     if (item && item.So_luong > 1) {
-      // Giảm số lượng sản phẩm trong giỏ hàng
       item.So_luong -= 1;
       setCartItems([...cartItems]);
     }
@@ -55,18 +55,57 @@ const CartDetails = () => {
   const handleRemove = async (id) => {
     try {
       const response = await axios.delete("/cart", { data: { mau_ma_sp: id } });
-      // Xử lý xóa sản phẩm khỏi giỏ hàng trong UI
       setCartItems(cartItems.filter((item) => item.Mau_ma_sp !== id));
-      alert(response.data.message); // Hiển thị thông báo thành công
+      setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
+      alert(response.data.message);
     } catch (error) {
       console.error("Error deleting product from cart:", error);
       alert("Xóa sản phẩm khỏi giỏ hàng thất bại.");
     }
   };
 
+  const handleSelectItem = (id) => {
+    if (selectedItems.includes(id)) {
+      setSelectedItems(selectedItems.filter((itemId) => itemId !== id));
+    } else {
+      setSelectedItems([...selectedItems, id]);
+    }
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(cartItems.map((item) => item.Mau_ma_sp));
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const handleCheckout = () => {
+    const selectedProducts = cartItems.filter((item) =>
+      selectedItems.includes(item.Mau_ma_sp)
+    );
+
+    if (selectedProducts.length === 0) {
+      alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+      return;
+    }
+
+    // Điều hướng đến trang thanh toán với các sản phẩm đã chọn
+    navigate("/checkout", { state: { items: selectedProducts } });
+  };
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Giỏ hàng của bạn</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Giỏ hàng của bạn</h1>
+        <button
+          onClick={handleSelectAll}
+          className="text-blue-500 hover:underline"
+        >
+          {selectAll ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+        </button>
+      </div>
 
       {cartItems.length > 0 ? (
         <div>
@@ -77,16 +116,22 @@ const CartDetails = () => {
                 className="flex items-center justify-between border-b pb-4"
               >
                 <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(item.Mau_ma_sp)}
+                    onChange={() => handleSelectItem(item.Mau_ma_sp)}
+                    className="mr-4"
+                  />
                   <img
                     src={item.Url_thumbnail || "https://via.placeholder.com/80"}
                     alt={item.Ten_san_pham}
                     className="w-16 h-16 rounded-md cursor-pointer hover:opacity-80 transition"
-                    onClick={() => openPopup(item)} // Mở popup khi click vào ảnh
+                    onClick={() => openPopup(item)}
                   />
                   <div className="ml-4">
                     <p
                       className="font-medium text-blue-500 cursor-pointer hover:underline"
-                      onClick={() => openPopup(item)} // Mở popup khi click vào tên
+                      onClick={() => openPopup(item)}
                     >
                       {item.Ten_san_pham}
                     </p>
@@ -98,7 +143,6 @@ const CartDetails = () => {
                   </div>
                 </div>
 
-                {/* Thao tác tăng/giảm/xóa */}
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center">
                     <button
@@ -116,7 +160,7 @@ const CartDetails = () => {
                     </button>
                   </div>
                   <button
-                    onClick={() => handleRemove(item.Mau_ma_sp)} // Xử lý xóa sản phẩm
+                    onClick={() => handleRemove(item.Mau_ma_sp)}
                     className="text-red-500 hover:underline"
                   >
                     Xóa
@@ -131,13 +175,13 @@ const CartDetails = () => {
               <p className="text-lg font-semibold">Tổng cộng:</p>
               <p className="text-lg font-bold">
                 {cartItems
+                  .filter((item) => selectedItems.includes(item.Mau_ma_sp))
                   .reduce((total, item) => total + item.Gia * item.So_luong, 0)
-                  .toLocaleString()}{" "}
-                VND
+                  .toLocaleString()} VND
               </p>
             </div>
             <button
-              onClick={() => navigate("/checkout")}
+              onClick={handleCheckout}
               className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"
             >
               Thanh toán
@@ -168,3 +212,4 @@ const CartDetails = () => {
 };
 
 export default CartDetails;
+

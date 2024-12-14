@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom"; // Import useNavigate
 import { AiOutlineSearch, AiOutlineShoppingCart } from "react-icons/ai";
 import { CgProfile } from "react-icons/cg";
-import { BiMenuAltLeft, BiLogIn } from "react-icons/bi";
+import { BiMenuAltLeft, BiLogIn, BiPackage } from "react-icons/bi";
 import { IoIosArrowDown } from "react-icons/io";
 import { useAuth } from "../../context/AuthContext"; // Import context
 import useLogout from "../../hooks/useLogout";
@@ -22,8 +22,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useLogout();
-
-  //get categories
+  
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -159,11 +158,31 @@ const Header = () => {
 
       {/* User avatar/ Login Button */}
       <div className="flex items-center md:space-x-6 text-white">
-        <AiOutlineShoppingCart
-          size={28}
+        <div
+          onClick={() => {
+            if (!user) {
+              alert("Bạn cần đăng nhập để sử dụng chức năng này");
+            } else {
+              navigate("/Order");
+            }
+          }}
           className="cursor-pointer"
-          onClick={() => setShowMiniCart((prev) => !prev)} // Toggle MiniCart
-        />
+        >
+          <BiPackage size={28} />
+        </div>
+        <div
+          onClick={() => {
+            if (!user) {
+              alert("Bạn cần đăng nhập để sử dụng chức năng này");
+            } else {
+              setShowMiniCart((prev) => !prev); // Toggle MiniCart
+            }
+          }}
+          className="cursor-pointer"
+        >
+          <AiOutlineShoppingCart size={28} />
+        </div>
+
         <div className="relative">
           {user ? (
             <button
@@ -228,7 +247,6 @@ const Header = () => {
             </div>
           )}
         </div>
-
       </div>
 
       {/* MiniCart */}

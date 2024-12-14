@@ -14,6 +14,7 @@ import SellerSignup from './components/Signup/SellerSignup';
 import SearchProductPage from "./pages/SearchProductPage"
 import ProductPage from "./pages/ProductPage"
 import CartPage from "./pages/CartPage"
+import OrderPage from  "./pages/OrderPage"
 
 
 export{
@@ -32,5 +33,6 @@ export{
     SellerSignup,
     SearchProductPage,
     ProductPage,
-    CartPage
+    CartPage,
+    OrderPage
 };

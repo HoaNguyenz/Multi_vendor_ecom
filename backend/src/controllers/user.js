@@ -151,7 +151,8 @@ const getCart = async (req, res) => {
           sp.Ten_san_pham,
           sp.Gia,
           sp.Url_thumbnail,
-          sp.Ma_san_pham
+          sp.Ma_san_pham,
+          sp.Ma_cua_hang
         FROM Chi_tiet_Gio_hang AS ctgh
         JOIN Mau_ma_san_pham AS mm ON ctgh.Mau_ma_sp = mm.ID
         JOIN San_pham AS sp ON mm.Ma_san_pham = sp.Ma_san_pham
@@ -249,25 +250,44 @@ const updateCart = async (req, res) => {
 
 
 const createOrder = async (req, res) => {
-  const { dia_chi_giao_hang, chi_tiet_don_hang, ma_cua_hang } = req.body;
+  const { dia_chi_giao_hang, phi_giao_hang, chi_tiet_don_hang } = req.body;
   const sdt = req.user.id;
-  const ma_don_hang = snowflake.generate();
 
-  const phi_giao_hang = 20000;
-  const soNgay = 3;
+  const soNgay = 3; // Thời gian giao hàng dự kiến (sau 3 ngày)
+  
   try {
-    // Create an order
-    await sql.query(`
-        INSERT INTO Don_hang (Ma_don_hang, Thoi_gian_dat_hang, Ngay_du_kien_giao, Phi_giao_hang, Sdt, Ma_cua_hang, Dia_chi_giao_hang)
-        VALUES (${ma_don_hang}, GETDATE(), DATEADD(day, ${soNgay}, GETDATE()), ${phi_giao_hang}, '${sdt}', ${ma_cua_hang}, ${dia_chi_giao_hang})
+    // Tách các sản phẩm theo mã cửa hàng
+    const groupedByStore = chi_tiet_don_hang.reduce((acc, item) => {
+      const storeId = item.ma_cua_hang;
+      if (!acc[storeId]) {
+        acc[storeId] = [];
+      }
+      acc[storeId].push(item);
+      return acc;
+    }, {});
+    console.log(groupedByStore);
+    // Lặp qua từng nhóm cửa hàng và tạo đơn hàng cho từng nhóm
+    for (const storeId in groupedByStore) {
+      const orderDetails = groupedByStore[storeId];
+      const ma_don_hang = snowflake.generate(); // Tạo mã đơn hàng cho mỗi cửa hàng
+
+      // Tính tổng giá trị đơn hàng cho cửa hàng hiện tại
+      const totalPrice = orderDetails.reduce((total, item) => total + item.gia * item.so_luong, 0);
+      const tongGia = totalPrice + phi_giao_hang; // Tổng giá = Tổng giá sản phẩm + phí giao hàng
+
+      // Tạo đơn hàng cho cửa hàng hiện tại
+      await sql.query(`
+        INSERT INTO Don_hang (Ma_don_hang, Thoi_gian_dat_hang, Ngay_du_kien_giao, Phi_giao_hang, Sdt, Ma_cua_hang, Dia_chi_giao_hang, Tong_gia)
+        VALUES (${ma_don_hang}, GETDATE(), DATEADD(day, ${soNgay}, GETDATE()), ${phi_giao_hang}, '${sdt}', ${storeId}, ${dia_chi_giao_hang}, ${tongGia})
       `);
 
-    // Add order details
-    for (let i = 0; i < chi_tiet_don_hang.length; i++) {
-      await sql.query(`
+      // Thêm chi tiết đơn hàng cho cửa hàng hiện tại
+      for (let i = 0; i < orderDetails.length; i++) {
+        await sql.query(`
           INSERT INTO Chi_tiet_don_hang (Ma_don_hang, Mau_ma_sp, So_luong)
-          VALUES (${ma_don_hang}, ${chi_tiet_don_hang[i].mau_ma_sp}, ${chi_tiet_don_hang[i].so_luong})
+          VALUES (${ma_don_hang}, ${orderDetails[i].mau_ma_sp}, ${orderDetails[i].so_luong})
         `);
+      }
     }
 
     res.status(200).json({ message: "Đã tạo đơn hàng." });
@@ -311,7 +331,7 @@ const getOrder = async (req, res) => {
             dh.Ngay_du_kien_giao,
             dh.Trang_thai,
             dh.Phi_giao_hang,
-            dh.Thoi_gian_giao_hang,
+            dh.Thoi_gian_giao_thuc_te,
             dh.Ly_do_huy,
             dh.Sdt,
             dh.Ma_cua_hang,
@@ -327,11 +347,12 @@ const getOrder = async (req, res) => {
             dh.Ngay_du_kien_giao,
             dh.Trang_thai,
             dh.Phi_giao_hang,
-            dh.Thoi_gian_giao_hang,
+            dh.Thoi_gian_giao_thuc_te,
             dh.Ly_do_huy,
             dh.Sdt,
             dh.Ma_cua_hang,
-            dh.Dia_chi_giao_hang
+            dh.Dia_chi_giao_hang,
+            dh.Tong_gia
           FROM Don_hang AS dh
           WHERE dh.Sdt = ${sdt}
         `;

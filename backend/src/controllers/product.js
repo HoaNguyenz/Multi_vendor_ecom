@@ -340,7 +340,9 @@ const getDetailProduct = async (req, res) => {
 const getBestSellingProducts = async (req, res) => {
   try {
     const result = await sql.query`
-                SELECT TOP 50 * FROM San_pham ORDER BY SL_da_ban DESC
+                SELECT TOP 50 * FROM San_pham 
+                WHERE Ma_cua_hang != -1
+                ORDER BY SL_da_ban DESC
             `;
 
     const products = result.recordset;
