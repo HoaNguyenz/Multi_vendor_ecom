@@ -12,6 +12,12 @@ const ProductDetails = () => {
   const [stock, setStock] = useState(null); // Tồn kho của tổ hợp được chọn
   const [currentImageIndex, setCurrentImageIndex] = useState(0); // State để theo dõi hình ảnh hiện tại
   const [quantity, setQuantity] = useState(1);
+  const [reviews, setReviews] = useState([]); // Lưu danh sách đánh giá từ backend
+  const [averageRating, setAverageRating] = useState(0); // Lấy trung bình điểm từ backend
+  const [newReview, setNewReview] = useState({
+    rating: 0,
+    comment: "",
+  });
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -40,6 +46,18 @@ const ProductDetails = () => {
     };
 
     fetchProduct();
+
+    const fetchReviews = async () => {
+      try {
+        const response = await axios.get(`/review/${id}`);
+        setReviews(response.data.reviews || []);
+        setAverageRating(response.data.averageRating || 0);
+      } catch (error) {
+        console.error("Error fetching reviews:", error);
+      }
+    };
+
+    fetchReviews();
   }, [id]);
 
   const handleColorChange = (color) => {
@@ -238,6 +256,105 @@ const ProductDetails = () => {
           className="w-full md:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-md hover:bg-green-600"
         >
           Thêm vào giỏ
+        </button>
+      </div>
+
+      <div className="mt-4">
+        <h2 className="text-lg font-semibold mb-2 text-gray-800">
+          Điểm trung bình từ đánh giá
+        </h2>
+        <div className="flex items-center space-x-1 mb-4">
+          {Array.from({ length: 5 }, (_, index) => (
+            <div
+              key={index}
+              className={`w-6 h-6 rounded-full transition-transform ${
+                index < Math.floor(averageRating)
+                  ? "bg-yellow-400 scale-110 shadow-md"
+                  : "bg-gray-300"
+              } hover:scale-125`}
+            />
+          ))}
+        </div>
+        <span className="text-lg font-semibold text-blue-600">
+          {averageRating.toFixed(1)} / 5
+        </span>
+      </div>
+
+      <div className="mt-6">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+          Đánh giá từ khách hàng
+        </h2>
+        {reviews.length === 0 ? (
+          <p className="text-gray-500 italic">
+            Chưa có đánh giá nào từ khách hàng.
+          </p>
+        ) : (
+          reviews.map((review) => (
+            <div
+              className="border-b bg-gray-50 shadow-md rounded-lg transform transition-transform ease-in-out hover:scale-105 hover:shadow-xl p-4"
+              key={review.Thoi_gian}
+            >
+              <div className="flex items-center mb-2">
+                {Array.from({ length: 5 }, (_, starIndex) => (
+                  <svg
+                    key={starIndex}
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-5 w-5 ${
+                      starIndex < review.Diem_danh_gia
+                        ? "text-yellow-500"
+                        : "text-gray-400"
+                    }`}
+                    fill="currentColor"
+                  />
+                ))}
+              </div>
+              <p className="text-lg font-semibold mb-2 text-gray-700">
+                {review.Nhan_xet}
+              </p>
+              <p className="text-sm text-blue-600">
+                {review.Sdt} - {new Date(review.Thoi_gian).toLocaleString()}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold mb-4">Gửi đánh giá</h2>
+        <input
+          type="number"
+          min={1}
+          max={5}
+          value={newReview.rating}
+          onChange={(e) =>
+            setNewReview({ ...newReview, rating: Number(e.target.value) })
+          }
+          className="border rounded-lg px-2 py-1 hover:scale-110 transition ease-in"
+        />
+        <textarea
+          placeholder="Nhận xét..."
+          value={newReview.comment}
+          onChange={(e) =>
+            setNewReview({ ...newReview, comment: e.target.value })
+          }
+          className="border rounded-lg px-2 py-2 w-full mt-2 hover:scale-105 transition ease-in"
+        />
+        <button
+          onClick={async () => {
+            try {
+              const response = await axios.post(`/add-review/${id}`, newReview);
+              alert(response.data.message);
+              const reviewsResponse = await axios.get(`/review/${id}`);
+              setReviews(reviewsResponse.data.reviews);
+              setAverageRating(reviewsResponse.data.averageRating);
+              setNewReview({ rating: 0, comment: "" });
+            } catch (error) {
+              alert("Gửi thất bại!");
+            }
+          }}
+          className="mt-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition ease-in"
+        >
+          Gửi Đánh Giá
         </button>
       </div>
     </div>
