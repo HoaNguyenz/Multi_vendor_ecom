@@ -437,6 +437,10 @@ const updateProduct = async (req, res) => {
     hinh_anh_san_phams,
   } = req.body;
   try {
+    let updateAt = new Date(Date.now() + 7 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
     // Cập nhật thông tin sản phẩm
     await sql.query`
         UPDATE San_pham
@@ -447,23 +451,36 @@ const updateProduct = async (req, res) => {
           Mo_ta = ${mo_ta},
           Gia = ${gia},
           Ten_danh_muc = ${ten_danh_muc},
-          Url_thumbnail = ${url_thumbnail}
+          Url_thumbnail = ${url_thumbnail},
+          Thoi_gian_tao = ${updateAt}
         WHERE Ma_san_pham = ${Ma_san_pham}
       `;
 
-    // Xóa mẫu mã cũ
-    await sql.query`
-        DELETE FROM Mau_ma_san_pham
-        WHERE Ma_san_pham = ${Ma_san_pham}
-      `;
-
+    // Kiểm tra và cập nhật hoặc thêm mới mẫu mã
     for (let i = 0; i < mau_ma_san_phams.length; i++) {
       const { mau_sac, kich_co, so_luong_ton_kho } = mau_ma_san_phams[i];
-      await sql.query`
-                    INSERT INTO Mau_ma_san_pham (ID, Ma_san_pham, Mau_sac, Kich_co, So_luong_ton_kho)
-                    VALUES (${snowflake.generate()}, ${Ma_san_pham}, ${mau_sac}, ${kich_co}, ${so_luong_ton_kho});
-                `;
+
+      // Kiểm tra xem mẫu mã đã tồn tại chưa
+      const result = await sql.query`
+        SELECT * FROM Mau_ma_san_pham
+        WHERE Ma_san_pham = ${Ma_san_pham} AND Mau_sac = ${mau_sac} AND Kich_co = ${kich_co}
+      `;
+      if (result.recordset.length > 0) {
+        // Nếu mẫu mã đã tồn tại, chỉ cần cập nhật số lượng tồn kho
+        await sql.query`
+          UPDATE Mau_ma_san_pham
+          SET So_luong_ton_kho = ${so_luong_ton_kho}
+          WHERE Ma_san_pham = ${Ma_san_pham} AND Mau_sac = ${mau_sac} AND Kich_co = ${kich_co}
+        `;
+      } else {
+        // Nếu mẫu mã chưa tồn tại, thêm mới
+        await sql.query`
+          INSERT INTO Mau_ma_san_pham (ID, Ma_san_pham, Mau_sac, Kich_co, So_luong_ton_kho)
+          VALUES (${snowflake.generate()}, ${Ma_san_pham}, ${mau_sac}, ${kich_co}, ${so_luong_ton_kho})
+        `;
+      }
     }
+
 
     // Cập nhật hình ảnh
     await sql.query`

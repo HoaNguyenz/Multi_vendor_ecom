@@ -28,7 +28,9 @@ userRouter.put(
 );
 userRouter.delete("/address/:id", verifyToken, controllers.deleteAddress);
 
-userRouter.post("/review", controllers.addReview);
+userRouter.post("/review", verifyToken, controllers.addReview);
 userRouter.get("/review/:maSanPham", controllers.getReview);
+
+userRouter.get('/order/details/:maDonHang', verifyToken, controllers.productInOrder)
 
 module.exports = userRouter;

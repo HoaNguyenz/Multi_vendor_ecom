@@ -130,15 +130,15 @@ const deleteFromCart = async (req, res) => {
 const getCart = async (req, res) => {
   const sdt = req.user.id;
   try {
-//     const result2 = await sql.query(`
-// select Ten_san_pham, Url_thumbnail, Xuat_xu, Thuong_hieu, Gia, Mau_sac, Kich_co, So_luong, Mau_ma_sp, Ma_cua_hang
-// from Chi_tiet_Gio_hang
-// join Mau_ma_san_pham mmsp on Mau_ma_sp = ID
-// join San_pham sp on mmsp.Ma_san_pham = sp.Ma_san_pham
-// where sdt = '${sdt}'
-// `);
-//     res.status(200).json(result2.recordset);
-//     return;
+    //     const result2 = await sql.query(`
+    // select Ten_san_pham, Url_thumbnail, Xuat_xu, Thuong_hieu, Gia, Mau_sac, Kich_co, So_luong, Mau_ma_sp, Ma_cua_hang
+    // from Chi_tiet_Gio_hang
+    // join Mau_ma_san_pham mmsp on Mau_ma_sp = ID
+    // join San_pham sp on mmsp.Ma_san_pham = sp.Ma_san_pham
+    // where sdt = '${sdt}'
+    // `);
+    //     res.status(200).json(result2.recordset);
+    //     return;
 
     const result = await sql.query`
         SELECT 
@@ -176,8 +176,8 @@ const getCart = async (req, res) => {
 
 //   try {
 //     const ton_kho_query = await sql.query(`
-//       SELECT So_luong_ton_kho 
-//       FROM Mau_ma_san_pham 
+//       SELECT So_luong_ton_kho
+//       FROM Mau_ma_san_pham
 //       WHERE ID = ${mau_ma_sp}
 //     `);
 //     const ton_kho = ton_kho_query.recordset[0]?.So_luong_ton_kho;
@@ -211,7 +211,9 @@ const updateCart = async (req, res) => {
   const sdt = req.user.id;
 
   if (so_luong <= 0) {
-    return res.status(400).json({ message: "Số lượng sản phẩm phải lớn hơn 0." });
+    return res
+      .status(400)
+      .json({ message: "Số lượng sản phẩm phải lớn hơn 0." });
   }
 
   try {
@@ -222,13 +224,15 @@ const updateCart = async (req, res) => {
     `);
 
     const ton_kho = ton_kho_query.recordset[0]?.So_luong_ton_kho;
-      console.log(ton_kho);
+    console.log(ton_kho);
     if (!ton_kho) {
       return res.status(404).json({ message: "Sản phẩm không tồn tại." });
     }
 
     if (so_luong > ton_kho) {
-      return res.status(400).json({ message: "Số lượng sản phẩm trong kho không đủ." });
+      return res
+        .status(400)
+        .json({ message: "Số lượng sản phẩm trong kho không đủ." });
     }
 
     const result = await sql.query(`
@@ -238,23 +242,26 @@ const updateCart = async (req, res) => {
     `);
 
     if (result.rowsAffected[0] === 0) {
-      return res.status(404).json({ message: "Sản phẩm không tồn tại trong giỏ hàng." });
+      return res
+        .status(404)
+        .json({ message: "Sản phẩm không tồn tại trong giỏ hàng." });
     }
 
     res.status(200).json({ message: "Đã cập nhật giỏ hàng." });
   } catch (error) {
     console.error("Error in updateCart:", error.message, error.stack);
-    res.status(500).json({ message: "Cập nhật giỏ hàng thất bại", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Cập nhật giỏ hàng thất bại", error: error.message });
   }
 };
-
 
 const createOrder = async (req, res) => {
   const { dia_chi_giao_hang, phi_giao_hang, chi_tiet_don_hang } = req.body;
   const sdt = req.user.id;
 
   const soNgay = 3; // Thời gian giao hàng dự kiến (sau 3 ngày)
-  
+
   try {
     // Tách các sản phẩm theo mã cửa hàng
     const groupedByStore = chi_tiet_don_hang.reduce((acc, item) => {
@@ -272,7 +279,10 @@ const createOrder = async (req, res) => {
       const ma_don_hang = snowflake.generate(); // Tạo mã đơn hàng cho mỗi cửa hàng
 
       // Tính tổng giá trị đơn hàng cho cửa hàng hiện tại
-      const totalPrice = orderDetails.reduce((total, item) => total + item.gia * item.so_luong, 0);
+      const totalPrice = orderDetails.reduce(
+        (total, item) => total + item.gia * item.so_luong,
+        0
+      );
       const tongGia = totalPrice + phi_giao_hang; // Tổng giá = Tổng giá sản phẩm + phí giao hàng
 
       // Tạo đơn hàng cho cửa hàng hiện tại
@@ -300,12 +310,13 @@ const createOrder = async (req, res) => {
 
 const cancelOrder = async (req, res) => {
   const { ma_don_hang, ly_do_huy } = req.body;
+  console.log(req.body);
   const sdt = req.user.id;
 
   try {
     await sql.query(`
         UPDATE Don_hang
-        SET Trang_thai = N'Đã hủy', Ly_do_huy = ${ly_do_huy}
+        SET Trang_thai = N'Đã hủy', Ly_do_huy = N'${ly_do_huy}'
         WHERE Ma_don_hang = ${ma_don_hang}
       `);
 
@@ -335,7 +346,8 @@ const getOrder = async (req, res) => {
             dh.Ly_do_huy,
             dh.Sdt,
             dh.Ma_cua_hang,
-            dh.Dia_chi_giao_hang
+            dh.Dia_chi_giao_hang,
+            dh.Tong_gia
           FROM Don_hang AS dh
           WHERE dh.Sdt = ${sdt} AND dh.Trang_thai = ${trang_thai}
         `;
@@ -445,9 +457,8 @@ const deleteAddress = async (req, res) => {
 
 // Đánh giá sản phẩm
 const addReview = async (req, res) => {
-  const { sdt, maSanPham, diemDanhGia, nhanXet, urlHinhAnh } = req.body;
+  const { sdt, maSanPham, diemDanhGia, nhanXet, urlHinhAnh, mauMaSp } = req.body;
 
-  // Validate input
   if (
     !sdt ||
     !maSanPham ||
@@ -459,31 +470,10 @@ const addReview = async (req, res) => {
   }
 
   try {
-    // Kiểm tra sản phẩm đã được giao hay chưa
-    const checkQuery = `
-      SELECT COUNT(*) AS count
-      FROM Don_hang dh
-      INNER JOIN Chi_tiet_don_hang ctdh ON dh.Ma_don_hang = ctdh.Ma_don_hang
-      WHERE dh.Sdt = @sdt AND ctdh.Mau_ma_sp = @maSanPham AND dh.Trang_thai = N'Đã giao thành công'
-    `;
-
-    const checkRequest = new sql.Request();
-    checkRequest.input("sdt", sql.Char(10), sdt);
-    checkRequest.input("maSanPham", sql.BigInt, maSanPham);
-
-    const checkResult = await checkRequest.query(checkQuery);
-    if (checkResult.recordset[0].count === 0) {
-      return res
-        .status(400)
-        .json({
-          message: "Sản phẩm chưa được giao thành công, không thể đánh giá!",
-        });
-    }
-    // Thêm đánh giá
     const insertQuery = `
-    INSERT INTO Danh_gia (Sdt, Ma_san_pham, Thoi_gian, Diem_danh_gia, Nhan_xet, Url_hinh_anh)
-    VALUES (@sdt, @maSanPham, GETDATE(), @diemDanhGia, @nhanXet, @urlHinhAnh)
-  `;
+      INSERT INTO Danh_gia (Sdt, Ma_san_pham, Thoi_gian, Diem_danh_gia, Nhan_xet, Url_hinh_anh)
+      VALUES (@sdt, @maSanPham, GETDATE(), @diemDanhGia, @nhanXet, @urlHinhAnh)
+    `;
 
     const request = new sql.Request();
     request.input("sdt", sql.Char(10), sdt);
@@ -491,8 +481,18 @@ const addReview = async (req, res) => {
     request.input("diemDanhGia", sql.TinyInt, diemDanhGia);
     request.input("nhanXet", sql.NText, nhanXet || null);
     request.input("urlHinhAnh", sql.VarChar(200), urlHinhAnh || null);
+    request.input("mauMaSp", sql.BigInt, mauMaSp);
 
     await request.query(insertQuery);
+
+    const updateQuery = `
+      UPDATE Chi_tiet_don_hang
+      SET Da_danh_gia = 1
+      WHERE Mau_ma_sp = @mauMaSp AND Ma_don_hang IN (SELECT Ma_don_hang FROM Don_hang WHERE Sdt = @sdt)
+    `;
+
+    await request.query(updateQuery);
+
     res.status(201).json({ message: "Đánh giá đã được thêm thành công!" });
   } catch (err) {
     console.error("Lỗi khi đánh giá sản phẩm.", err);
@@ -501,27 +501,94 @@ const addReview = async (req, res) => {
 };
 
 // Xem đánh giá của một sản phẩm
+// const getReview = async (req, res) => {
+//   const { maSanPham } = req.params;
+
+//   try {
+//     const query = `
+//       SELECT Sdt, Diem_danh_gia AS DiemDanhGia, Nhan_xet AS NhanXet, Url_hinh_anh AS UrlHinhAnh, Thoi_gian AS ThoiGian
+//       FROM Danh_gia
+//       WHERE Ma_san_pham = @maSanPham
+//       ORDER BY Thoi_gian DESC
+//     `;
+
+//     const request = new sql.Request();
+//     request.input("maSanPham", sql.BigInt, maSanPham);
+
+//     const result = await request.query(query);
+//     res.status(200).json(result.recordset);
+//   } catch (err) {
+//     console.error("Lỗi khi xem đánh giá sản phẩm.", err);
+//     res.status(500).json({ message: "Lỗi server!" });
+//   }
+// };
 const getReview = async (req, res) => {
   const { maSanPham } = req.params;
 
   try {
     const query = `
-      SELECT Sdt, Diem_danh_gia AS DiemDanhGia, Nhan_xet AS NhanXet, Url_hinh_anh AS UrlHinhAnh, Thoi_gian AS ThoiGian
+      SELECT 
+        Sdt, 
+        Diem_danh_gia
+        Nhan_xet
+        Url_hinh_anh
+        Thoi_gian
       FROM Danh_gia
-      WHERE Ma_san_pham = @maSanPham
+      WHERE Ma_san_pham = ${maSanPham}
       ORDER BY Thoi_gian DESC
     `;
 
-    const request = new sql.Request();
-    request.input("maSanPham", sql.BigInt, maSanPham);
+    const result = await sql.query(query);
+    if (!result || result.recordset.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy đánh giá cho sản phẩm này." });
+    }
 
-    const result = await request.query(query);
     res.status(200).json(result.recordset);
   } catch (err) {
     console.error("Lỗi khi xem đánh giá sản phẩm.", err);
     res.status(500).json({ message: "Lỗi server!" });
   }
 };
+
+
+const productInOrder = async (req, res) => {
+  const { maDonHang } = req.params;
+
+  try {
+    const result = await sql.query(
+      `
+      SELECT 
+        sp.Ma_san_pham,
+        sp.Ten_san_pham,
+        mm.Mau_sac,
+        mm.Kich_co AS Size,
+        sp.Gia AS Don_gia,
+        sp.Url_thumbnail,
+        ct.So_luong,
+        ct.Da_danh_gia,
+        (ct.So_luong * sp.Gia) AS Thanh_tien,
+        dh.Ma_cua_hang,
+        ct.Mau_ma_sp
+      FROM Chi_tiet_don_hang ct
+      INNER JOIN Mau_ma_san_pham mm ON ct.Mau_ma_sp = mm.ID
+      INNER JOIN San_pham sp ON mm.Ma_san_pham = sp.Ma_san_pham
+      INNER JOIN Don_hang dh ON ct.Ma_don_hang = dh.Ma_don_hang
+      WHERE ct.Ma_don_hang = ${maDonHang}
+    `,
+    );
+
+    // Xử lý kết quả
+    if (!result || result.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy chi tiết đơn hàng" });
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 
 module.exports = {
   getUserInfo,
@@ -539,6 +606,7 @@ module.exports = {
   deleteAddress,
   addReview,
   getReview,
+  productInOrder
 };
 
 // CREATE DATABASE eCommerce;

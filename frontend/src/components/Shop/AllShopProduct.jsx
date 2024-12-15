@@ -62,38 +62,51 @@ const AllShopProduct = () => {
       field: "Ten_danh_muc",
       headerName: "Phân loại",
       minWidth: 70,
-      flex: 0.7,
+      flex: 0.5,
       headerAlign: "center",
     },
     {
       field: "Ton_kho",
       headerName: "Tồn kho",
       type: "number",
-      minWidth: 80,
-      flex: 0.6,
+      minWidth: 50,
+      flex: 0.4,
       headerAlign: "center",
     },
     {
       field: "Gia",
       headerName: "Đơn giá",
-      minWidth: 120,
+      minWidth: 100,
       flex: 0.6,
       headerAlign: "center",
+      renderCell: (params) => {
+        const price = params.row.Gia.toLocaleString();
+        return `${price} đ`;
+      }
     },
     {
       field: "SL_da_ban",
       headerName: "Đã bán",
       type: "number",
-      minWidth: 80,
-      flex: 0.6,
+      minWidth: 50,
+      flex: 0.4,
       headerAlign: "center",
     },
     {
       field: "Thoi_gian_tao",
-      headerName: "Ngày tạo",
-      minWidth: 80,
-      flex: 0.6,
+      headerName: "Cập nhật cuối",
+      minWidth: 120,
+      flex: 0.8,
       headerAlign: "center",
+      renderCell: (params) => {
+        const date = new Date(params.row.Thoi_gian_tao);
+        return `${date.toISOString().replace("T", " ").slice(11, 19)} ${date
+          .toISOString()
+          .slice(0, 10)
+          .split("-")
+          .reverse()
+          .join("/")}`;
+      },
     },
     {
       field: "edit",
@@ -126,11 +139,9 @@ const AllShopProduct = () => {
   // Hàm xử lý xóa sản phẩm
   const handleDelete = async (productId) =>{
     try {
-    console.log("Xóa sản phẩm có mã:", productId);
     const response = await axios.delete(`/delete-product/${productId}`);
-    if (response.status === 201) {
-      console.log("Xóa sản phẩm thanh công");
-    }
+    alert("Xóa sản phẩm thanh công");
+    window.location.reload();
   } catch (error) {
     console.error("Error deleting product", error);
   }

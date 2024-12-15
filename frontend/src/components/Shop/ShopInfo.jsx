@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import axios from "../../context/configAxios"; // Thay đổi theo cấu trúc project của bạn
 import styles from "../../styles/styles"; // Thay đổi theo file styles của bạn
 import ProductCard from "../Product/ProductCard";

@@ -5,7 +5,6 @@ import axios from "../../../context/configAxios";
 
 const AddProductPopup = ({ onClose }) => {
   const [images, setImages] = useState([]);
-  const [imageNames, setImageNames] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [origin, setOrigin] = useState("");
@@ -145,8 +144,12 @@ const AddProductPopup = ({ onClose }) => {
       setPriceError(null);
       setHasError(false);
     }
-
-    setPrice(price);
+    let formattedValue = price.replace(/[^0-9]/g, '');
+    if (formattedValue) {
+      formattedValue = Number(formattedValue).toLocaleString();
+    }
+    
+    setPrice(formattedValue);
   };
 
   const handleSizeChange = (e) => {
@@ -200,30 +203,26 @@ const AddProductPopup = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Kiểm tra có ảnh sản phẩm chưa
     if (images.length === 0) {
       setImageError("Vui lòng chọn ít nhất một hình ảnh minh hoạ");
       setHasError(true);
       return;
     }
-    // Kiểm tra nếu chưa chọn size hoặc màu sắc
     if (size.length === 0 || color.length === 0) {
       setErrorMessage("");
       setErrorMessage("Vui lòng chọn ít nhất một size và một màu sắc.");
       setHasError(true);
       return;
     }
-    // Kiểm tra nếu chưa chọn category
     if (!category) {
       setErrorMessage("Vui lòng chọn danh mục.");
       return;
     }
 
-    // Upload ảnh
     const uploadedImages = [];
     for (const image of images) {
       try {
-        const imageUrl = await handleImageUpload(image.file); // Thực hiện upload ảnh khi submit
+        const imageUrl = await handleImageUpload(image.file);
         uploadedImages.push(imageUrl);
       } catch (error) {
         setImageError("Lỗi khi upload ảnh.");
@@ -231,7 +230,6 @@ const AddProductPopup = ({ onClose }) => {
       }
     }
 
-    // Tạo mảng mau_ma_san_phams từ dữ liệu size và color
     const mau_ma_san_phams = [];
 
     size.forEach((s) => {
@@ -252,7 +250,7 @@ const AddProductPopup = ({ onClose }) => {
       xuat_xu: origin,
       thuong_hieu: brand,
       mo_ta: description,
-      gia: price,
+      gia: parseInt(price.replace(/[^0-9]/g, ''), 10),
       url_thumbnail: uploadedImages[0], // Use the first image as the thumbnail
       ten_danh_muc: category.value,
       mau_ma_san_phams: mau_ma_san_phams,
@@ -264,6 +262,7 @@ const AddProductPopup = ({ onClose }) => {
       console.log(response.data.message);
       alert("Thêm sản phẩm thành công!");
       onClose();
+      window.location.reload();
     } catch (error) {
       console.error("Error adding product:", error);
       setHasError(true);

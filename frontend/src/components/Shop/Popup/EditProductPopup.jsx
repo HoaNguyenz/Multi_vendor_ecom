@@ -47,17 +47,6 @@ const EditProductPopup = ({ product, onClose }) => {
     };
     fetchCategories();
   }, [product]);
-
-  // useEffect(() => {
-  //   if (categories.length > 0 && product.Ten_danh_muc) {
-  //     const currentCategory = categories.find(
-  //       (cat) => cat.toLowerCase() === product.Ten_danh_muc.toLowerCase()
-  //     );
-  //     if (currentCategory) {
-  //       setCategory({ value: currentCategory, label: currentCategory });
-  //     }
-  //   }
-  // }, [categories, product.Ten_danh_muc]);
   useEffect(() => {
     if (categories.length > 0 && product.Ten_danh_muc && !categoryUpdated) {
       const currentCategory = categories.find(
@@ -71,17 +60,15 @@ const EditProductPopup = ({ product, onClose }) => {
 
   const handleAddCategory = async () => {
     if (newCategory) {
-      // Kiểm tra xem danh mục đã tồn tại trong danh sách categories chưa
       const existingCategory = categories.find(
         (cat) => cat.toLowerCase() === newCategory.toLowerCase()
       );
 
       if (existingCategory) {
-        // Nếu danh mục đã tồn tại, chọn danh mục đó
         setCategory({ value: existingCategory, label: existingCategory });
-        setCategoryUpdated(true); // Mark category as updated
-        setNewCategory(""); // Clear input field
-        setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
+        setCategoryUpdated(true);
+        setNewCategory("");
+        setIsAddingNewCategory(false);
       } else {
         try {
           const response = await axios.post("/add-category", {
@@ -90,10 +77,10 @@ const EditProductPopup = ({ product, onClose }) => {
           if (response.status === 201) {
             const updatedCategories = [...categories, newCategory];
             setCategories(updatedCategories);
-            setCategory({ value: newCategory, label: newCategory }); // Chọn danh mục mới
-            setCategoryUpdated(true); // Mark category as updated
+            setCategory({ value: newCategory, label: newCategory });
+            setCategoryUpdated(true); 
             setNewCategory("");
-            setIsAddingNewCategory(false); // Ẩn form nhập danh mục mới
+            setIsAddingNewCategory(false); 
           }
         } catch (error) {
           setErrorMessage("Có lỗi khi thêm danh mục mới. Vui lòng thử lại.");
@@ -103,15 +90,6 @@ const EditProductPopup = ({ product, onClose }) => {
     }
   };
 
-  // const handleCategoryChange = (selectedOption) => {
-  //   if (selectedOption.value === "add_new") {
-  //     setIsAddingNewCategory(true);
-  //     setCategory(null);
-  //   } else {
-  //     setIsAddingNewCategory(false);
-  //     setCategory(selectedOption);
-  //   }
-  // };
   const handleCategoryChange = (selectedOption) => {
     if (selectedOption.value === "add_new") {
       setIsAddingNewCategory(true);
@@ -138,8 +116,12 @@ const EditProductPopup = ({ product, onClose }) => {
       setPriceError(null);
       setHasError(false);
     }
-
-    setPrice(price);
+    let formattedValue = price.replace(/[^0-9]/g, '');
+    if (formattedValue) {
+      formattedValue = Number(formattedValue).toLocaleString();
+    }
+    
+    setPrice(formattedValue);
   };
 
   const handleSizeChange = (e) => {
@@ -265,28 +247,23 @@ const EditProductPopup = ({ product, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Kiểm tra có ảnh sản phẩm chưa
     if (images.length === 0) {
       setImageError("Vui lòng chọn ít nhất một hình ảnh minh hoạ");
       setHasError(true);
       return;
     }
-    // Kiểm tra nếu chưa chọn size hoặc màu sắc
     if (size.length === 0 || color.length === 0) {
       setErrorMessage("");
       setErrorMessage("Vui lòng chọn ít nhất một size và một màu sắc.");
       setHasError(true);
       return;
     }
-    // Kiểm tra nếu chưa chọn category
     if (!category) {
       setErrorMessage("Vui lòng chọn danh mục.");
       return;
     }
 
     try {
-      // Upload new images
-      // const uploadedImages = [...images.map((img) => img.preview)];
       const uploadedImages = [];
       for (const image of images) {
         if (image.file) {
@@ -303,10 +280,8 @@ const EditProductPopup = ({ product, onClose }) => {
               withCredentials: ""
             }
           );
-          // Thêm URL ảnh đã upload vào mảng
           uploadedImages.push(response.data.secure_url);
         } else if (image.img_url) {
-          // Chỉ thêm ảnh cũ khi img_url không null hoặc undefined
           uploadedImages.push(image.img_url);
         }
       }
@@ -326,26 +301,25 @@ const EditProductPopup = ({ product, onClose }) => {
         });
       });
 
-      // Prepare product data
       const updatedProduct = {
         ten_san_pham: name,
         xuat_xu: origin,
         thuong_hieu: brand,
         mo_ta: description,
-        gia: price,
-        url_thumbnail: uploadedImages[0], // Use the first image as the thumbnail
+        gia: parseInt(price.replace(/[^0-9]/g, ''), 10),
+        url_thumbnail: uploadedImages[0],
         ten_danh_muc: category.value,
         mau_ma_san_phams: mau_ma_san_phams,
         hinh_anh_san_phams: uploadedImages,
       };
       console.log(uploadedImages[0])
-      // Send update request
       const response = await axios.put(
         `/edit-product/${product.id}`,
         updatedProduct
       );
       alert("Cập nhật sản phẩm thành công!");
       onClose();
+      window.location.reload();
     } catch (error) {
       console.error("Error updating product:", error);
       setErrorMessage("Có lỗi xảy ra. Vui lòng thử lại.");
