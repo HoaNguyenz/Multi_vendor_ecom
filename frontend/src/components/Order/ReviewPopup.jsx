@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "../../context/configAxios";
 import { useAuth } from "../../context/AuthContext";
 
-const ReviewPopup = ({ open, onClose, product }) => {
+const ReviewPopup = ({ open, onClose, product, maDonHang }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [image, setImage] = useState(null); // File ảnh
@@ -59,6 +59,7 @@ const ReviewPopup = ({ open, onClose, product }) => {
         nhanXet: comment || null,
         urlHinhAnh: uploadedImageURL || null,
         mauMaSp: product.Mau_ma_sp,
+        maDonHang
       };
 
       const response = await axios.post("review", reviewData);

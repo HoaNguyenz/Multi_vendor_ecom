@@ -13,6 +13,12 @@ const AllShopProduct = () => {
   const [isEditPopupOpen, setIsEditPopupOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null); // Lưu sản phẩm đang chỉnh sửa
 
+  const dateComparator = (v1, v2) => {
+    const date1 = new Date(v1); // Chuyển đổi chuỗi ngày thành đối tượng Date
+    const date2 = new Date(v2); // Chuyển đổi chuỗi ngày thành đối tượng Date
+    return date1 - date2; // Trả về sự khác biệt giữa 2 đối tượng Date (dùng để sắp xếp)
+  };
+
   const openEditPopup = (product) => {
     setEditingProduct(product);
     setIsEditPopupOpen(true);
@@ -98,6 +104,7 @@ const AllShopProduct = () => {
       minWidth: 120,
       flex: 0.8,
       headerAlign: "center",
+      sortComparator: dateComparator,
       renderCell: (params) => {
         const date = new Date(params.row.Thoi_gian_tao);
         return `${date.toISOString().replace("T", " ").slice(11, 19)} ${date

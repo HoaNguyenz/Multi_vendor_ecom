@@ -71,7 +71,6 @@ const CheckoutDetails = () => {
       gia: item.Gia,
     })),
   };
-  console.log(orderData);
   const handlePlaceOrder = async () => {
     try {
       const orderData = {

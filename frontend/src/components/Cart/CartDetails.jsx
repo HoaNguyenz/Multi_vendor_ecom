@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../context/configAxios";
 import ProductDetailPopup from "../../components/Product/ProductDetailPopup";
+import { FaPlus, FaMinus } from "react-icons/fa";
 
 const CartDetails = () => {
   const navigate = useNavigate();
@@ -96,7 +97,7 @@ const CartDetails = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto my-4 p-4 bg-white rounded-md">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Giỏ hàng của bạn</h1>
         <button
@@ -108,76 +109,84 @@ const CartDetails = () => {
       </div>
 
       {cartItems.length > 0 ? (
-        <div>
-          <div className="space-y-4">
-            {cartItems.map((item) => (
-              <div
-                key={item.Mau_ma_sp}
-                className="flex items-center justify-between border-b pb-4"
-              >
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={selectedItems.includes(item.Mau_ma_sp)}
-                    onChange={() => handleSelectItem(item.Mau_ma_sp)}
-                    className="mr-4"
-                  />
-                  <img
-                    src={item.Url_thumbnail || "https://via.placeholder.com/80"}
-                    alt={item.Ten_san_pham}
-                    className="w-16 h-16 rounded-md cursor-pointer hover:opacity-80 transition"
-                    onClick={() => openPopup(item)}
-                  />
-                  <div className="ml-4">
-                    <p
-                      className="font-medium text-blue-500 cursor-pointer hover:underline"
+        <div className="flex gap-8">
+          {/* Cart Items Section */}
+          <div className="w-3/4">
+            <div className="space-y-4">
+              {cartItems.map((item) => (
+                <div
+                  key={item.Mau_ma_sp}
+                  className="flex items-center justify-between border-b pb-4"
+                >
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedItems.includes(item.Mau_ma_sp)}
+                      onChange={() => handleSelectItem(item.Mau_ma_sp)}
+                      className="mr-4"
+                    />
+                    <img
+                      src={
+                        item.Url_thumbnail || "https://via.placeholder.com/80"
+                      }
+                      alt={item.Ten_san_pham}
+                      className="w-16 h-16 rounded-md cursor-pointer hover:opacity-80 transition"
                       onClick={() => openPopup(item)}
-                    >
-                      {item.Ten_san_pham}
-                    </p>
-                    <div className="flex space-x-4 text-sm text-gray-500">
-                      <p>Giá: {item.Gia.toLocaleString()} VND</p>
-                      <p>Size: {item.Kich_co}</p>
-                      <p>Màu sắc: {item.Mau_sac}</p>
+                    />
+                    <div className="ml-4">
+                      <p
+                        className="font-medium text-blue-500 cursor-pointer hover:underline"
+                        onClick={() => openPopup(item)}
+                      >
+                        {item.Ten_san_pham}
+                      </p>
+                      <div className="flex space-x-4 text-sm text-gray-500">
+                        <p>Giá: {item.Gia.toLocaleString()} VND</p>
+                        <p>Size: {item.Kich_co}</p>
+                        <p>Màu sắc: {item.Mau_sac}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center">
+                  <div className="flex items-center space-x-4 rounded-md">
+                    <div className="flex items-center p-1 rounded-full border-gray-300 border-[1px]">
+                      <button
+                        onClick={() => handleDecrease(item.Mau_ma_sp)}
+                        className="p-2 rounded-full flex items-center justify-center hover:bg-gray-200"
+                      >
+                        <FaMinus/>
+                      </button>
+                      <span className="mx-3 text-lg">{item.So_luong}</span>
+                      <button
+                        onClick={() => handleIncrease(item.Mau_ma_sp)}
+                        className="p-2 rounded-full flex items-center justify-center hover:bg-gray-200"
+                      >
+                        <FaPlus/>
+                      </button>
+                    </div>
+
                     <button
-                      onClick={() => handleDecrease(item.Mau_ma_sp)}
-                      className="p-2 bg-gray-200 rounded-md"
+                      onClick={() => handleRemove(item.Mau_ma_sp)}
+                      className="text-red-500 hover:underline"
                     >
-                      -
-                    </button>
-                    <span className="mx-2">{item.So_luong}</span>
-                    <button
-                      onClick={() => handleIncrease(item.Mau_ma_sp)}
-                      className="p-2 bg-gray-200 rounded-md"
-                    >
-                      +
+                      Xóa
                     </button>
                   </div>
-                  <button
-                    onClick={() => handleRemove(item.Mau_ma_sp)}
-                    className="text-red-500 hover:underline"
-                  >
-                    Xóa
-                  </button>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          <div className="mt-6 bg-gray-100 p-4 rounded-md shadow-md">
+          {/* Total Summary Section */}
+          <div className="w-1/4 bg-white p-4 rounded-md shadow-md">
             <div className="flex justify-between mb-4">
               <p className="text-lg font-semibold">Tổng cộng:</p>
               <p className="text-lg font-bold">
                 {cartItems
                   .filter((item) => selectedItems.includes(item.Mau_ma_sp))
                   .reduce((total, item) => total + item.Gia * item.So_luong, 0)
-                  .toLocaleString()} VND
+                  .toLocaleString()}{" "}
+                VND
               </p>
             </div>
             <button
@@ -212,4 +221,3 @@ const CartDetails = () => {
 };
 
 export default CartDetails;
-

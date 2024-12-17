@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../context/configAxios";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import ProductReview from "./ProductReview";
+import { MdOutlineAddShoppingCart } from "react-icons/md";
+import { FaRegMoneyBill1 } from "react-icons/fa6";
 
 const ProductDetails = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [productImg, setProductImg] = useState([]);
@@ -12,19 +16,12 @@ const ProductDetails = () => {
   const [stock, setStock] = useState(null); // Tồn kho của tổ hợp được chọn
   const [currentImageIndex, setCurrentImageIndex] = useState(0); // State để theo dõi hình ảnh hiện tại
   const [quantity, setQuantity] = useState(1);
-  const [reviews, setReviews] = useState([]); // Lưu danh sách đánh giá từ backend
-  const [averageRating, setAverageRating] = useState(0); // Lấy trung bình điểm từ backend
-  const [newReview, setNewReview] = useState({
-    rating: 0,
-    comment: "",
-  });
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`/product-detail/${id}`);
         setProduct(response.data);
-        console.log(response.data);
         setProductImg(response.data.hinh_anh_san_phams);
 
         if (response.data.mau_ma_san_phams.length > 0) {
@@ -46,18 +43,6 @@ const ProductDetails = () => {
     };
 
     fetchProduct();
-
-    const fetchReviews = async () => {
-      try {
-        const response = await axios.get(`/review/${id}`);
-        setReviews(response.data.reviews || []);
-        setAverageRating(response.data.averageRating || 0);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-      }
-    };
-
-    fetchReviews();
   }, [id]);
 
   const handleColorChange = (color) => {
@@ -134,228 +119,193 @@ const ProductDetails = () => {
     }
   };
 
+  const buyNow = async () => {
+    try {
+      const colorSizeOption = product.mau_ma_san_phams.find(
+        (option) =>
+          option.mau_sac === selectedColor && option.kich_co === selectedSize
+      );
+      if (!colorSizeOption) {
+        alert("Vui lòng chọn màu và kích cỡ.");
+        return;
+      }
+      const cartResponse = await axios.get("/cart");
+      const addedProduct = cartResponse.data.find(
+        (item) => item.Mau_ma_sp === colorSizeOption.id && item.So_luong === quantity
+      );
+      if (addedProduct) {
+        alert("Sản phẩm này đã có trong giỏ hàng của bạn rồi.");
+        return;
+      }
+      else {
+        const data = {
+          mau_ma_sp: colorSizeOption.id,
+          so_luong: quantity,
+        };
+        await axios.post("/cart", data);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Thêm sản phẩm vào giỏ thất bại.");
+    }
+
+    try {
+      const colorSizeOption = product.mau_ma_san_phams.find(
+        (option) =>
+          option.mau_sac === selectedColor && option.kich_co === selectedSize
+      );
+      const cartResponse = await axios.get("/cart");
+      const addedProduct = cartResponse.data.find(
+        (item) => item.Mau_ma_sp === colorSizeOption.id && item.So_luong === quantity
+      );
+      const addedProductArray = addedProduct ? [addedProduct] : [];
+      console.log(addedProduct);
+      navigate("/checkout", { state: { items: addedProductArray } });
+    } catch (error) {
+      console.error("Error fetching cart:", error);
+    }
+  };
+
   return (
-    <div className="flex flex-col md:flex-row gap-8 p-6">
-      {/* Hiển thị hình ảnh hiện tại */}
-      <div className="flex-shrink-0 relative">
-        <div className="flex flex-col items-center gap-4 w-[50vh] h-[50vh] md:w-[35vw] md:h-[35vw] relative">
-          <img
-            className="w-full h-full object-contain rounded-lg border border-gray-200"
-            src={productImg[currentImageIndex]}
-            alt={`Hình ảnh sản phẩm ${currentImageIndex + 1}`}
-          />
-
-          {/* Các nút chuyển hình ảnh */}
-          <div className="absolute top-1/2 left-0 transform -translate-y-1/2 px-4">
-            <button
-              onClick={prevImage}
-              className="bg-gray-100 rounded-md hover:bg-blue-200 pl-2 pr-2 pt-4 pb-4"
-            >
-              <IoIosArrowBack className="md:size-8" color="black" />
-            </button>
-          </div>
-
-          <div className="absolute top-1/2 right-0 transform -translate-y-1/2 px-4">
-            <button
-              onClick={nextImage}
-              className="bg-gray-100 rounded-md hover:bg-blue-200 pl-2 pr-2 pt-4 pb-4"
-            >
-              <IoIosArrowForward className="md:size-8" color="black" />
-            </button>
-          </div>
-
-          {/* Các chấm biểu thị vị trí hiện tại */}
-          <div className="flex justify-center">
-            {productImg.map((_, index) => (
-              <div
-                key={index}
-                className={`w-3 h-3 mx-1 rounded-full ${
-                  currentImageIndex === index ? "bg-blue-500" : "bg-gray-300"
-                }`}
-              ></div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1">
-        <h1 className="text-2xl font-semibold mb-4">{product.Ten_san_pham}</h1>
-        <p className="text-xl text-red-500 font-bold mb-4">
-          {product.Gia.toLocaleString()}₫
-        </p>
-        <p className="text-gray-600 mb-6">{product.Mo_ta}</p>
-
-        <div className="mb-6">
-          <h4 className="text-lg font-medium mb-2">Màu sắc:</h4>
-          <div className="flex gap-2">
-            {uniqueColors.map((color, index) => (
-              <button
-                key={index}
-                className={`px-4 py-2 border rounded-md ${
-                  selectedColor === color
-                    ? "border-blue-500 bg-blue-100"
-                    : "border-gray-300"
-                }`}
-                onClick={() => handleColorChange(color)}
-              >
-                {color}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h4 className="text-lg font-medium mb-2">Kích cỡ:</h4>
-          <div className="flex gap-2">
-            {sizesForSelectedColor.map((option, index) => (
-              <button
-                key={index}
-                className={`px-4 py-2 border rounded-md ${
-                  selectedSize === option.kich_co
-                    ? "border-blue-500 bg-blue-100"
-                    : "border-gray-300"
-                }`}
-                onClick={() => handleSizeChange(option.kich_co)}
-              >
-                {option.kich_co}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {stock !== null && (
-          <p className="text-gray-700 mb-6">
-            Tồn kho: <span className="font-bold">{stock}</span>
-          </p>
-        )}
-
-        {/* Thêm phần input cho số lượng */}
-        <div className="flex items-center mb-6">
-          <button
-            className="px-4 py-2 bg-gray-100 rounded-l-md"
-            onClick={() => handleQuantityChange("decrease")}
-          >
-            -
-          </button>
-          <input
-            type="number"
-            value={quantity}
-            onChange={(e) => setQuantity(Math.max(1, e.target.value))}
-            className="w-16 text-center border-gray-300 border px-2 py-1"
-            min="1"
-          />
-          <button
-            className="px-4 py-2 bg-gray-100 rounded-r-md"
-            onClick={() => handleQuantityChange("increase")}
-          >
-            +
-          </button>
-        </div>
-        <button
-          onClick={addToCart}
-          className="w-full md:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-md hover:bg-green-600"
-        >
-          Thêm vào giỏ
-        </button>
-      </div>
-
-      <div className="mt-4">
-        <h2 className="text-lg font-semibold mb-2 text-gray-800">
-          Điểm trung bình từ đánh giá
-        </h2>
-        <div className="flex items-center space-x-1 mb-4">
-          {Array.from({ length: 5 }, (_, index) => (
-            <div
-              key={index}
-              className={`w-6 h-6 rounded-full transition-transform ${
-                index < Math.floor(averageRating)
-                  ? "bg-yellow-400 scale-110 shadow-md"
-                  : "bg-gray-300"
-              } hover:scale-125`}
+    <div className="flex flex-col gap-8 p-6">
+      <div className="flex flex-col md:flex-row gap-8 p-6 bg-white rounded-md">
+        {/* Hiển thị hình ảnh hiện tại */}
+        <div className="flex-shrink-0 relative">
+          <div className="flex flex-col items-center gap-4 w-[50vh] h-[50vh] md:w-[35vw] md:h-[35vw] relative">
+            <img
+              className="w-full h-full object-contain rounded-lg border border-gray-200"
+              src={productImg[currentImageIndex]}
+              alt={`Hình ảnh sản phẩm ${currentImageIndex + 1}`}
             />
-          ))}
-        </div>
-        <span className="text-lg font-semibold text-blue-600">
-          {averageRating.toFixed(1)} / 5
-        </span>
-      </div>
 
-      <div className="mt-6">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-          Đánh giá từ khách hàng
-        </h2>
-        {reviews.length === 0 ? (
-          <p className="text-gray-500 italic">
-            Chưa có đánh giá nào từ khách hàng.
-          </p>
-        ) : (
-          reviews.map((review) => (
-            <div
-              className="border-b bg-gray-50 shadow-md rounded-lg transform transition-transform ease-in-out hover:scale-105 hover:shadow-xl p-4"
-              key={review.Thoi_gian}
-            >
-              <div className="flex items-center mb-2">
-                {Array.from({ length: 5 }, (_, starIndex) => (
-                  <svg
-                    key={starIndex}
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-5 w-5 ${
-                      starIndex < review.Diem_danh_gia
-                        ? "text-yellow-500"
-                        : "text-gray-400"
-                    }`}
-                    fill="currentColor"
-                  />
-                ))}
-              </div>
-              <p className="text-lg font-semibold mb-2 text-gray-700">
-                {review.Nhan_xet}
-              </p>
-              <p className="text-sm text-blue-600">
-                {review.Sdt} - {new Date(review.Thoi_gian).toLocaleString()}
-              </p>
+            {/* Các nút chuyển hình ảnh */}
+            <div className="absolute top-1/2 left-0 transform -translate-y-1/2 px-4">
+              <button
+                onClick={prevImage}
+                className="bg-gray-100 rounded-md hover:bg-blue-200 pl-2 pr-2 pt-4 pb-4"
+              >
+                <IoIosArrowBack className="md:size-8" color="black" />
+              </button>
             </div>
-          ))
-        )}
+
+            <div className="absolute top-1/2 right-0 transform -translate-y-1/2 px-4">
+              <button
+                onClick={nextImage}
+                className="bg-gray-100 rounded-md hover:bg-blue-200 pl-2 pr-2 pt-4 pb-4"
+              >
+                <IoIosArrowForward className="md:size-8" color="black" />
+              </button>
+            </div>
+
+            {/* Các chấm biểu thị vị trí hiện tại */}
+            <div className="flex justify-center">
+              {productImg.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-3 h-3 mx-1 rounded-full ${
+                    currentImageIndex === index ? "bg-blue-500" : "bg-gray-300"
+                  }`}
+                ></div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1">
+          <h1 className="text-2xl font-semibold mb-4">
+            {product.Ten_san_pham}
+          </h1>
+          <p className="text-xl text-red-500 font-bold mb-4">
+            {product.Gia.toLocaleString()}₫
+          </p>
+          <p className="text-gray-600 mb-6">{product.Mo_ta}</p>
+
+          <div className="mb-6">
+            <h4 className="text-lg font-medium mb-2">Màu sắc:</h4>
+            <div className="flex gap-2">
+              {uniqueColors.map((color, index) => (
+                <button
+                  key={index}
+                  className={`px-4 py-2 border rounded-md hover:bg-blue-200 ${
+                    selectedColor === color
+                      ? "border-blue-500 bg-blue-100"
+                      : "border-gray-300"
+                  }`}
+                  onClick={() => handleColorChange(color)}
+                >
+                  {color}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <h4 className="text-lg font-medium mb-2">Kích cỡ:</h4>
+            <div className="flex gap-2">
+              {sizesForSelectedColor.map((option, index) => (
+                <button
+                  key={index}
+                  className={`px-4 py-2 border rounded-md hover:bg-blue-200 ${
+                    selectedSize === option.kich_co
+                      ? "border-blue-500 bg-blue-100"
+                      : "border-gray-300"
+                  }`}
+                  onClick={() => handleSizeChange(option.kich_co)}
+                >
+                  {option.kich_co}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {stock !== null && (
+            <p className="text-gray-700 mb-6">
+              Tồn kho: <span className="font-bold">{stock}</span>
+            </p>
+          )}
+
+          {/* Thêm phần input cho số lượng */}
+          <div className="flex items-center mb-6">
+            <button
+              className="px-4 py-2 bg-gray-100 rounded-l-md"
+              onClick={() => handleQuantityChange("decrease")}
+            >
+              -
+            </button>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(Math.max(1, e.target.value))}
+              className="w-16 text-center border-gray-300 border px-2 py-1"
+              min="1"
+            />
+            <button
+              className="px-4 py-2 bg-gray-100 rounded-r-md"
+              onClick={() => handleQuantityChange("increase")}
+            >
+              +
+            </button>
+          </div>
+          <div className="flex gap-4 lg:w-[30vw]">
+            {" "}
+            <button
+              onClick={addToCart}
+              className="flex flex-1 items-center justify-center gap-2 w-full md:w-auto px-6 py-3 bg-orange-500 text-white font-medium rounded-md hover:bg-orange-600"
+            >
+              <MdOutlineAddShoppingCart size={20} /> Thêm vào giỏ
+            </button>
+            <button
+              onClick={buyNow}
+              className="flex flex-1 items-center justify-center gap-2 w-full md:w-auto px-6 py-3 bg-green-500 text-white font-medium rounded-md hover:bg-green-600"
+            >
+              <FaRegMoneyBill1 size={20} /> Mua ngay
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-lg font-semibold mb-4">Gửi đánh giá</h2>
-        <input
-          type="number"
-          min={1}
-          max={5}
-          value={newReview.rating}
-          onChange={(e) =>
-            setNewReview({ ...newReview, rating: Number(e.target.value) })
-          }
-          className="border rounded-lg px-2 py-1 hover:scale-110 transition ease-in"
-        />
-        <textarea
-          placeholder="Nhận xét..."
-          value={newReview.comment}
-          onChange={(e) =>
-            setNewReview({ ...newReview, comment: e.target.value })
-          }
-          className="border rounded-lg px-2 py-2 w-full mt-2 hover:scale-105 transition ease-in"
-        />
-        <button
-          onClick={async () => {
-            try {
-              const response = await axios.post(`/add-review/${id}`, newReview);
-              alert(response.data.message);
-              const reviewsResponse = await axios.get(`/review/${id}`);
-              setReviews(reviewsResponse.data.reviews);
-              setAverageRating(reviewsResponse.data.averageRating);
-              setNewReview({ rating: 0, comment: "" });
-            } catch (error) {
-              alert("Gửi thất bại!");
-            }
-          }}
-          className="mt-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition ease-in"
-        >
-          Gửi Đánh Giá
-        </button>
+      <div>
+        <ProductReview productId={id} />
       </div>
     </div>
   );

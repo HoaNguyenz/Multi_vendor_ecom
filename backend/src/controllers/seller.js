@@ -112,28 +112,29 @@ const updateShop = async (req, res) => {
 };
 
 const getOrders = async (req, res) => {
-  const Sdt = req.user.id;
+  const Sdt = req.user.id; // Số điện thoại của người bán (lấy từ user đã đăng nhập)
   const status = req.query.status;
 
   try {
     let str = `
-    SELECT * FROM Don_hang WHERE Ma_cua_hang = (
-      SELECT Ma_cua_hang FROM Nguoi_ban_va_Cua_hang WHERE Sdt = ${Sdt}
-    )`;
+      SELECT 
+        dh.*,
+        nd.Ho_va_ten AS Ten_nguoi_dung
+      FROM Don_hang dh
+      JOIN Nguoi_dung_va_Gio_hang nd ON dh.Sdt = nd.Sdt
+      WHERE dh.Ma_cua_hang = (
+        SELECT Ma_cua_hang FROM Nguoi_ban_va_Cua_hang WHERE Sdt = '${Sdt}'
+      )
+    `;
 
-    if (status) str += `AND Trang_thai = N'${status}'`;
+    // Thêm điều kiện lọc theo trạng thái đơn hàng nếu có
+    if (status) str += ` AND dh.Trang_thai = N'${status}'`;
 
     const result = await sql.query(str);
 
-    // // Lấy thêm thông tin chi tiết đơn hàng gồm các mẫu mã sản phẩm và sản phẩm khác nhau cho mỗi đơn hàng
-    // for (let i = 0; i < result.recordset.length; i++) {
-    //   const { Ma_cua_hang } = result.recordset[i];
-
-    // }
-
     res.status(200).json(result.recordset);
   } catch (error) {
-    console.error(error);
+    console.error("Lỗi khi lấy thông tin đơn hàng:", error);
     res.status(500).json({
       message: "Lỗi khi lấy thông tin đơn hàng.",
       error: error.message,
@@ -181,7 +182,7 @@ const confirmDelivery = async (req, res) => {
   try {
     await sql.query(`
     UPDATE Don_hang
-    SET Trang_thai = N'Đã giao thành công', Thoi_gian_giao_hang = GETDATE()
+    SET Trang_thai = N'Đã giao thành công', Thoi_gian_giao_thuc_te = GETDATE()
     WHERE Ma_don_hang = ${Ma_don_hang}`);
 
     // Cộng số lượng sản phẩm đã bán SL_da_ban

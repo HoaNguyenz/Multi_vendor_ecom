@@ -457,7 +457,7 @@ const deleteAddress = async (req, res) => {
 
 // Đánh giá sản phẩm
 const addReview = async (req, res) => {
-  const { sdt, maSanPham, diemDanhGia, nhanXet, urlHinhAnh, mauMaSp } = req.body;
+  const { sdt, maSanPham, diemDanhGia, nhanXet, urlHinhAnh, mauMaSp, maDonHang } = req.body;
 
   if (
     !sdt ||
@@ -471,8 +471,8 @@ const addReview = async (req, res) => {
 
   try {
     const insertQuery = `
-      INSERT INTO Danh_gia (Sdt, Ma_san_pham, Thoi_gian, Diem_danh_gia, Nhan_xet, Url_hinh_anh)
-      VALUES (@sdt, @maSanPham, GETDATE(), @diemDanhGia, @nhanXet, @urlHinhAnh)
+      INSERT INTO Danh_gia (Sdt, Ma_san_pham, Thoi_gian, Diem_danh_gia, Nhan_xet, Url_hinh_anh, Ma_don_hang)
+      VALUES (@sdt, @maSanPham, GETDATE(), @diemDanhGia, @nhanXet, @urlHinhAnh, @maDonHang)
     `;
 
     const request = new sql.Request();
@@ -482,6 +482,7 @@ const addReview = async (req, res) => {
     request.input("nhanXet", sql.NText, nhanXet || null);
     request.input("urlHinhAnh", sql.VarChar(200), urlHinhAnh || null);
     request.input("mauMaSp", sql.BigInt, mauMaSp);
+    request.input("maDonHang", sql.BigInt, maDonHang);
 
     await request.query(insertQuery);
 
@@ -501,55 +502,27 @@ const addReview = async (req, res) => {
 };
 
 // Xem đánh giá của một sản phẩm
-// const getReview = async (req, res) => {
-//   const { maSanPham } = req.params;
-
-//   try {
-//     const query = `
-//       SELECT Sdt, Diem_danh_gia AS DiemDanhGia, Nhan_xet AS NhanXet, Url_hinh_anh AS UrlHinhAnh, Thoi_gian AS ThoiGian
-//       FROM Danh_gia
-//       WHERE Ma_san_pham = @maSanPham
-//       ORDER BY Thoi_gian DESC
-//     `;
-
-//     const request = new sql.Request();
-//     request.input("maSanPham", sql.BigInt, maSanPham);
-
-//     const result = await request.query(query);
-//     res.status(200).json(result.recordset);
-//   } catch (err) {
-//     console.error("Lỗi khi xem đánh giá sản phẩm.", err);
-//     res.status(500).json({ message: "Lỗi server!" });
-//   }
-// };
 const getReview = async (req, res) => {
   const { maSanPham } = req.params;
 
   try {
     const query = `
-      SELECT 
-        Sdt, 
-        Diem_danh_gia
-        Nhan_xet
-        Url_hinh_anh
-        Thoi_gian
+      SELECT Sdt, Diem_danh_gia AS DiemDanhGia, Nhan_xet AS NhanXet, Url_hinh_anh AS UrlHinhAnh, Thoi_gian AS ThoiGian
       FROM Danh_gia
-      WHERE Ma_san_pham = ${maSanPham}
+      WHERE Ma_san_pham = @maSanPham
       ORDER BY Thoi_gian DESC
     `;
 
-    const result = await sql.query(query);
-    if (!result || result.recordset.length === 0) {
-      return res.status(404).json({ message: "Không tìm thấy đánh giá cho sản phẩm này." });
-    }
+    const request = new sql.Request();
+    request.input("maSanPham", sql.BigInt, maSanPham);
 
+    const result = await request.query(query);
     res.status(200).json(result.recordset);
   } catch (err) {
     console.error("Lỗi khi xem đánh giá sản phẩm.", err);
     res.status(500).json({ message: "Lỗi server!" });
   }
 };
-
 
 const productInOrder = async (req, res) => {
   const { maDonHang } = req.params;
@@ -568,24 +541,56 @@ const productInOrder = async (req, res) => {
         ct.Da_danh_gia,
         (ct.So_luong * sp.Gia) AS Thanh_tien,
         dh.Ma_cua_hang,
-        ct.Mau_ma_sp
+        dh.Phi_giao_hang,
+        dh.Sdt,
+        ct.Mau_ma_sp,
+        ncc.Ten AS Ten_cua_hang,
+        ncc.Url_logo,
+        dc.So_nha,
+        dc.Phuong_or_Xa,
+        dc.Quan_or_Huyen,
+        dc.Tinh_or_TP
       FROM Chi_tiet_don_hang ct
       INNER JOIN Mau_ma_san_pham mm ON ct.Mau_ma_sp = mm.ID
       INNER JOIN San_pham sp ON mm.Ma_san_pham = sp.Ma_san_pham
       INNER JOIN Don_hang dh ON ct.Ma_don_hang = dh.Ma_don_hang
+      INNER JOIN Nguoi_ban_va_Cua_hang ncc ON dh.Ma_cua_hang = ncc.Ma_cua_hang
+      INNER JOIN Dia_chi dc ON ncc.Dia_chi = dc.ID
       WHERE ct.Ma_don_hang = ${maDonHang}
-    `,
+      `
     );
 
     // Xử lý kết quả
-    if (!result || result.length === 0) {
+    if (!result.recordset || result.recordset.length === 0) {
       return res.status(404).json({ message: "Không tìm thấy chi tiết đơn hàng" });
     }
 
-    res.json(result);
+    res.json(result.recordset);
   } catch (error) {
     console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
     res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+const getMyReview = async (req, res) => {
+  const { maSanPham, maDonHang } = req.params;
+
+  try {
+    const query = `
+      SELECT *
+      FROM Danh_gia
+      WHERE Ma_san_pham = @maSanPham AND Ma_don_hang = @maDonHang
+    `;
+
+    const request = new sql.Request();
+    request.input("maSanPham", sql.BigInt, maSanPham);
+    request.input("maDonHang", sql.BigInt, maDonHang);
+
+    const result = await request.query(query);
+    res.status(200).json(result.recordset);
+  } catch (err) {
+    console.error("Lỗi khi xem đánh giá sản phẩm.", err);
+    res.status(500).json({ message: "Lỗi server!" });
   }
 };
 
@@ -606,7 +611,8 @@ module.exports = {
   deleteAddress,
   addReview,
   getReview,
-  productInOrder
+  productInOrder,
+  getMyReview
 };
 
 // CREATE DATABASE eCommerce;

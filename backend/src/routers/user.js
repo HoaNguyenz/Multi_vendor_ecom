@@ -30,6 +30,7 @@ userRouter.delete("/address/:id", verifyToken, controllers.deleteAddress);
 
 userRouter.post("/review", verifyToken, controllers.addReview);
 userRouter.get("/review/:maSanPham", controllers.getReview);
+userRouter.get("/review/:maSanPham/:maDonHang", verifyToken, controllers.getMyReview);
 
 userRouter.get('/order/details/:maDonHang', verifyToken, controllers.productInOrder)
 
