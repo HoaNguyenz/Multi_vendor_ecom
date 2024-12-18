@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from '../../context/configAxios'; // Thêm axios
-import './BestSellerProducts.css';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "../../context/configAxios"; // Đảm bảo axios đúng
+import "./BestSellerProducts.css";
 
 const BestSellerProducts = () => {
   const [products, setProducts] = useState([]);
@@ -10,13 +10,34 @@ const BestSellerProducts = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch products from backend
+    // Fetch sản phẩm bán chạy
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('/best-selling-products'); // Đảm bảo URL đúng
-        setProducts(response.data);
+        const response = await axios.get("/best-selling-products");
+        const productList = response.data;
+
+        // Gọi thêm API để lấy rating cho từng sản phẩm
+        const productsWithRatings = await Promise.all(
+          productList.map(async (product) => {
+            try {
+              const reviewResponse = await axios.get(`/review/${product.Ma_san_pham}`);
+              const reviews = reviewResponse.data;
+
+              // Tính tổng điểm và trung bình rating
+              const totalRatings = reviews.length;
+              const totalScore = reviews.reduce((sum, review) => sum + review.DiemDanhGia, 0);
+              const averageRating = totalRatings > 0 ? totalScore / totalRatings : 0;
+
+              return { ...product, rating: averageRating, totalRatings };
+            } catch {
+              return { ...product, rating: 0, totalRatings: 0 }; // Mặc định 0 nếu lỗi
+            }
+          })
+        );
+
+        setProducts(productsWithRatings);
       } catch (err) {
-        setError(err.message || 'Lỗi khi lấy sản phẩm');
+        setError(err.message || "Lỗi khi lấy sản phẩm");
       } finally {
         setLoading(false);
       }
@@ -26,10 +47,13 @@ const BestSellerProducts = () => {
   }, []);
 
   const renderStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating - fullStars >= 0.5;
+    // Đảm bảo rating là số hợp lệ và nằm trong khoảng 0-5
+    const validRating = Math.max(0, Math.min(5, isNaN(rating) ? 0 : rating));
+  
+    const fullStars = Math.floor(validRating);
+    const halfStar = validRating - fullStars >= 0.5;
     const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-
+  
     return (
       <>
         {Array(fullStars)
@@ -46,6 +70,7 @@ const BestSellerProducts = () => {
       </>
     );
   };
+  
 
   if (loading) return <p>Đang tải...</p>;
   if (error) return <p>Lỗi: {error}</p>;
@@ -64,8 +89,11 @@ const BestSellerProducts = () => {
             <div className="product-info">
               <span className="supplier">{product.Thuong_hieu}</span>
               <h3 className="product-name">{product.Ten_san_pham}</h3>
-              <div className="rating">{renderStars(product.SL_da_ban / 20)}</div>
-              <p className="price">{product.Gia.toLocaleString('vi-VN')} VND</p>
+              <div className="rating">
+                {renderStars(product.rating)} {/* Hiển thị sao */}
+                <span className="text-sm">{product.rating.toFixed(1)} ({product.totalRatings})</span> {/* Hiển thị điểm */}
+              </div>
+              <p className="price">{product.Gia.toLocaleString("vi-VN")} VND</p>
             </div>
           </div>
         ))}

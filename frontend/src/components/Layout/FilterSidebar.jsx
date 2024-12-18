@@ -75,7 +75,7 @@ const FilterSidebar = ({ filters, setFilters }) => {
   };
 
   return (
-    <div className="w-[15vw] p-4 border-r border-gray-200 bg-white">
+    <div className="w-[15vw] p-4 border-r border-gray-200 bg-white sticky top-0 h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar">
       {/* Xuất xứ */}
       <div className="mb-4">
         <div className="flex justify-between items-center font-medium mb-2 space-x-2">

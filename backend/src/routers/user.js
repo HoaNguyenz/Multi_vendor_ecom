@@ -33,5 +33,8 @@ userRouter.get("/review/:maSanPham", controllers.getReview);
 userRouter.get("/review/:maSanPham/:maDonHang", verifyToken, controllers.getMyReview);
 
 userRouter.get('/order/details/:maDonHang', verifyToken, controllers.productInOrder)
+userRouter.get('/shop/:ma_cua_hang', controllers.getSellerInfoByStoreId)
+userRouter.get('/ratings/:ma_cua_hang', controllers.getRatingsByStoreId)
+userRouter.get('/products/:ma_cua_hang', controllers.getProductsByStoreId);
 
 module.exports = userRouter;

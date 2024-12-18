@@ -597,6 +597,30 @@ const searchProductsBySeller = async (req, res) => {
   }
 };
 
+const sellerOfProduct = async (req, res) => {
+  const { ma_cua_hang } = req.query;
+  try {
+    const result = await sql.query`
+      SELECT *
+      FROM Nguoi_ban_va_Cua_hang WHERE Ma_cua_hang = ${ma_cua_hang}
+    `;
+    
+    const seller = result.recordset[0];
+    console.log(result)
+    if (!seller) {
+      return res.status(404).json({ message: "Người bán không tồn tại." });
+    }
+    
+    res.status(200).json(seller);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Lỗi khi lấy thông tin người bán.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getCategories,
   addCategory,
@@ -611,4 +635,5 @@ module.exports = {
   deleteProduct,
   getProductsByCategory,
   searchProductsBySeller,
+  sellerOfProduct
 };

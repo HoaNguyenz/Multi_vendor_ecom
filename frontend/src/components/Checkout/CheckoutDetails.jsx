@@ -61,16 +61,6 @@ const CheckoutDetails = () => {
 
   const finalTotal = productTotal + totalShippingFee;
 
-  const orderData = {
-    dia_chi_giao_hang: selectedAddress,
-    phi_giao_hang: shippingFee,
-    chi_tiet_don_hang: cartItems.map((item) => ({
-      mau_ma_sp: item.Mau_ma_sp, // Mã sản phẩm
-      so_luong: item.So_luong, // Số lượng sản phẩm
-      ma_cua_hang: item.Ma_cua_hang, // Mã cửa hàng của sản phẩm
-      gia: item.Gia,
-    })),
-  };
   const handlePlaceOrder = async () => {
     try {
       const orderData = {
@@ -90,9 +80,12 @@ const CheckoutDetails = () => {
       if (response.status === 200) {
         // Xóa sản phẩm khỏi giỏ hàng
         for (const item of cartItems) {
-            await axios.delete("/cart", { data: { mau_ma_sp: item.Mau_ma_sp } });
-          }
-        navigate("/");
+          await axios.delete("/cart", { data: { mau_ma_sp: item.Mau_ma_sp } });
+        }
+        alert("Đơn hàng đã được đặt thành công")
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
       }
     } catch (error) {
       console.error("Đặt hàng thất bại:", error);
@@ -118,100 +111,132 @@ const CheckoutDetails = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto bg-white rounded-md my-4 p-4">
       <h1 className="text-3xl font-bold mb-6">Thanh Toán</h1>
 
-      {/* Danh sách sản phẩm */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4">Sản phẩm</h2>
-        <div className="space-y-4">
-          {cartItems.map((item) => (
-            <div
-              key={item.Mau_ma_sp}
-              className="flex items-center justify-between border-b pb-4"
-            >
-              <div className="flex items-center">
-                <img
-                  src={item.Url_thumbnail || "https://via.placeholder.com/80"}
-                  alt={item.Ten_san_pham}
-                  className="w-16 h-16 rounded-md"
-                />
-                <div className="ml-4">
-                  <p className="font-medium">{item.Ten_san_pham}</p>
-                  <p className="text-sm text-gray-500">
-                    Số lượng: {item.So_luong}
-                  </p>
+      <div className="flex gap-8">
+        {/* Danh sách sản phẩm */}
+        <div className="mb-6 w-3/5">
+          <h2 className="text-xl font-semibold mb-4">Sản phẩm</h2>
+          <div className="space-y-4">
+            {cartItems.map((item) => (
+              <div
+                key={item.Mau_ma_sp}
+                className="flex items-center justify-between border-b pb-4"
+              >
+                <div className="flex items-center">
+                  <img
+                    src={item.Url_thumbnail || "https://via.placeholder.com/80"}
+                    alt={item.Ten_san_pham}
+                    className="w-16 h-16 rounded-md cursor-pointer hover:opacity-80 transition border-gray-200 border-[1px]"
+                  />
+                  <div className="ml-4">
+                    <p className="font-medium text-blue-500 cursor-pointer hover:underline">
+                      {item.Ten_san_pham}
+                    </p>
+                    <div className="flex space-x-4 text-gray-500">
+                      <p>Giá: {item.Gia.toLocaleString()} VND</p>
+                      <p>Size: {item.Kich_co}</p>
+                      <p>Màu sắc: {item.Mau_sac}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <p className="font-medium">
-                {(item.Gia * item.So_luong).toLocaleString()} VND
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Thông tin người nhận */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4">Thông tin đặt hàng</h2>
-        <div className="space-y-4">
-          <input
-            type="text"
-            name="name"
-            value={user.username}
-            className="w-full p-2 border rounded-md"
-            readOnly
-          />
-          <input
-            type="text"
-            name="phone"
-            value={user.sdt}
-            className="w-full p-2 border rounded-md"
-            readOnly
-          />
-          <div className="flex items-center space-x-2">
-            <select
-              className="w-full p-2 border rounded-md"
-              value={selectedAddress}
-              onChange={(e) => setSelectedAddress(e.target.value)}
-            >
-              {addresses.map((address) => (
-                <option key={address.ID} value={address.ID}>
-                  {`${address.So_nha}, ${address.Phuong_or_Xa}, ${address.Quan_or_Huyen}, ${address.Tinh_or_TP}`}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={() => {
-                setIsAddAddressPopupOpen(true);
-                setIsAddingNewAddress(true);
-              }}
-              className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-            >
-              Nhập địa chỉ mới
-            </button>
+            ))}
           </div>
         </div>
-      </div>
+        {/* Thông tin người nhận */}
+        <div className="mb-6 w-2/5 bg-white p-4 rounded-md shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Thông tin đặt hàng</h2>
+          <div className="space-y-4">
+            {/* Thêm div bao bọc để dùng flexbox */}
+            <div className="flex space-x-4">
+              {/* Thêm label cho "Người nhận" */}
+              <div className="w-1/2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-semibold mb-1"
+                >
+                  Người nhận
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  value={user.username}
+                  className="w-full p-2 border rounded-md"
+                  readOnly
+                />
+              </div>
 
-      {/* Phương thức vận chuyển */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-4">Phương thức vận chuyển</h2>
-        <div className="space-y-2">
-          {shippingMethods.map((method) => (
-            <label key={method.name} className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="shippingMethod"
-                value={method.name}
-                checked={selectedShippingMethod === method.name}
-                onChange={() => handleShippingMethodChange(method.name)}
-              />
-              <span>
-                {method.name} - {method.price.toLocaleString()} VND
-              </span>
-            </label>
-          ))}
+              {/* Thêm label cho "Số điện thoại" */}
+              <div className="w-1/2">
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-semibold mb-1"
+                >
+                  Số điện thoại
+                </label>
+                <input
+                  id="phone"
+                  type="text"
+                  name="phone"
+                  value={user.sdt}
+                  className="w-full p-2 border rounded-md"
+                  readOnly
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <select
+                className="w-3/4 p-2 border rounded-md"
+                value={selectedAddress}
+                onChange={(e) => setSelectedAddress(e.target.value)}
+              >
+                {addresses.map((address) => (
+                  <option key={address.ID} value={address.ID}>
+                    {`${address.So_nha}, ${address.Phuong_or_Xa}, ${address.Quan_or_Huyen}, ${address.Tinh_or_TP}`}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => {
+                  setIsAddAddressPopupOpen(true);
+                  setIsAddingNewAddress(true);
+                }}
+                className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-1/4 h-full"
+              >
+                Địa chỉ mới
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-4">
+                Phương thức vận chuyển
+              </h2>
+              <div className="space-y-2">
+                {shippingMethods.map((method) => (
+                  <label
+                    key={method.name}
+                    className="flex items-center space-x-2"
+                  >
+                    <input
+                      type="radio"
+                      name="shippingMethod"
+                      value={method.name}
+                      checked={selectedShippingMethod === method.name}
+                      onChange={() => handleShippingMethodChange(method.name)}
+                    />
+                    <span>
+                      {method.name} - {method.price.toLocaleString()} VND
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -235,7 +260,7 @@ const CheckoutDetails = () => {
       </div> */}
 
       {/* Tổng cộng */}
-      <div className="bg-gray-100 p-4 rounded-md shadow-md">
+      <div className="bg-white p-4 rounded-md shadow-md">
         <h2 className="text-xl font-semibold mb-4">Tóm tắt đơn hàng</h2>
         <div className="flex justify-between mb-2">
           <p>Tổng cộng:</p>

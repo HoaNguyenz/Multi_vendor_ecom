@@ -103,8 +103,7 @@ const OrderDetails = () => {
       renderCell: (params) => {
         // Kiểm tra trạng thái đơn hàng
         const isCancellable =
-          params.row.Trang_thai !== "Đã hủy" &&
-          params.row.Trang_thai !== "Đã giao thành công";
+          params.row.Trang_thai === "Chờ xác nhận"
         return isCancellable ? (
           <Button onClick={() => handleCancelClick(params.row.Ma_don_hang)}>
             <LuPackageX size={20} color="red" />

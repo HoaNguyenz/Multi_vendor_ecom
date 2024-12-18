@@ -7,13 +7,11 @@ import { IoIosArrowDown } from "react-icons/io";
 import { useAuth } from "../../context/AuthContext"; // Import context
 import useLogout from "../../hooks/useLogout";
 import axios from "../../context/configAxios";
-import MiniCart from "../Cart/MiniCart";
 
 const Header = () => {
   const { user, loading } = useAuth();
   const [profileMenu, setProfileMenu] = useState(false);
   const [categoryMenu, setCategoryMenu] = useState(false);
-  const [showMiniCart, setShowMiniCart] = useState(false); // State để điều khiển MiniCart
   const profileMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,7 +92,7 @@ const Header = () => {
   };
 
   return (
-    <div className="w-full bg-blue-500 h-[60px] flex items-center justify-between px-4 md:px-8 relative">
+    <div className="w-full bg-blue-500 h-[60px] flex items-center justify-between px-4 md:px-8 sticky top-0 z-50">
       <div className="text-white font-bold text-xl md:text-2xl">
         <Link to="/">LOGO</Link>
       </div>
@@ -175,14 +173,13 @@ const Header = () => {
             if (!user) {
               alert("Bạn cần đăng nhập để sử dụng chức năng này");
             } else {
-              setShowMiniCart((prev) => !prev); // Toggle MiniCart
+              navigate("/Cart");
             }
           }}
           className="cursor-pointer"
         >
           <AiOutlineShoppingCart size={28} />
         </div>
-
         <div className="relative">
           {user ? (
             <button
@@ -248,9 +245,6 @@ const Header = () => {
           )}
         </div>
       </div>
-
-      {/* MiniCart */}
-      {showMiniCart && <MiniCart />}
     </div>
   );
 };

@@ -25,6 +25,8 @@ import UserRoute from "./context/userRoute";
 import SellerRoute from "./context/sellerRoute";
 import { CartProvider } from "./context/CartContext";
 import CheckoutPage from "./pages/CheckoutPage";
+import ShopOfProduct from "../src/components/Product/ShopOfProduct"
+import ShopOfProductsPage from "./pages/ShopOfProductsPage.jsx";
 
 const App = () => {
   return (
@@ -40,6 +42,7 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/search" element={<SearchProductPage />} />
             <Route path="/product/:id" element={<ProductPage />} />
+            <Route path="/shop/:id" element={<ShopOfProductsPage />} />
 
             {/* Các route yêu cầu đăng nhập */}
             <Route

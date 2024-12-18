@@ -140,7 +140,7 @@ const CartDetails = () => {
                       >
                         {item.Ten_san_pham}
                       </p>
-                      <div className="flex space-x-4 text-sm text-gray-500">
+                      <div className="flex space-x-4 text-gray-500">
                         <p>Giá: {item.Gia.toLocaleString()} VND</p>
                         <p>Size: {item.Kich_co}</p>
                         <p>Màu sắc: {item.Mau_sac}</p>

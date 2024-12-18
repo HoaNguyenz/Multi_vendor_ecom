@@ -12,5 +12,10 @@ sellerRouter.put("/update-shop", verifyToken, controllers.updateShop);
 sellerRouter.get("/seller/orders", verifyToken, controllers.getOrders);
 sellerRouter.put("/confirm-order/:id", verifyToken, controllers.confirmOrder);
 sellerRouter.put("/confirm-delivery/:id", verifyToken, controllers.confirmDelivery);
+sellerRouter.get("/get-status", verifyToken, controllers.getStatus);
+sellerRouter.get("/sales-summary", verifyToken, controllers.salesSummary);
+sellerRouter.get("/orders-completed", verifyToken, controllers.getCompletedOrders);
+sellerRouter.get("/product-rank", verifyToken, controllers.getProductRank);
+sellerRouter.get("/shop-rating", verifyToken, controllers.getRatings);
 
 module.exports = sellerRouter;

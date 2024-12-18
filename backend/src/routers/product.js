@@ -27,5 +27,6 @@ productRouter.get(
 productRouter.get("/product-detail/:id", controllers.getDetailProduct);
 productRouter.get("/best-selling-products", controllers.getBestSellingProducts);
 productRouter.get("/product-seller", verifyToken, controllers.getProductSeller);
+productRouter.get("/seller-of-product", controllers.sellerOfProduct);
 
 module.exports = productRouter;

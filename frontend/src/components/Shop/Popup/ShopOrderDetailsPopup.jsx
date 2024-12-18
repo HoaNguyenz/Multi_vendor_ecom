@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
-import axios from "../../context/configAxios";
-import ReviewPopup from "./ReviewPopup";
+import axios from "../../../context/configAxios";
+import ReviewPopup from "../../Order/ReviewPopup";
 import { useNavigate } from "react-router-dom";
 
-const DetailsPopup = ({ open, onClose, maDonHang, trangThaiDonHang }) => {
+const ShopOrderDetailsPopup = ({ open, onClose, maDonHang, trangThaiDonHang }) => {
   const navigate = useNavigate();
   const [orderDetails, setOrderDetails] = useState([]);
-  const [openReviewPopup, setOpenReviewPopup] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [soNha, setSoNha] = useState("");
   const [phuongXa, setphuongXa] = useState("");
   const [quanHuyen, setQuanHuyen] = useState("");
@@ -31,23 +29,16 @@ const DetailsPopup = ({ open, onClose, maDonHang, trangThaiDonHang }) => {
       setQuanHuyen(details[0].Quan_or_Huyen);
       setTinhTp(details[0].Tinh_or_TP);
       setSdt(details[0].Sdt);
+      setPhiGiaoHang(details[0].Phi_giao_hang);
+      console.log(details);
     } catch (error) {
       console.error("Lỗi khi lấy chi tiết đơn hàng:", error);
     }
   };
 
-  const handleReviewClick = (product) => {
-    setSelectedProduct(product);
-    setOpenReviewPopup(true);
-  };
-
   const handleProductClick = (item) => {
     navigate(`/product/${item.Ma_san_pham}`);
   };
-
-  const handleShopClick = (item) => {
-    navigate(`/shop/${item.Ma_cua_hang}`);
-  }
 
   // Tính tổng tiền của toàn bộ đơn hàng
   const calculateTotalAmount = () => {
@@ -93,8 +84,7 @@ const DetailsPopup = ({ open, onClose, maDonHang, trangThaiDonHang }) => {
                       >
                         {item.Ten_san_pham}
                       </p>
-                      <p className="text-md font-medium text-blue-500 cursor-pointer hover:underline mr-2"
-                      onClick={() => handleShopClick(item)}>
+                      <p className="text-md font-medium text-blue-500 cursor-pointer hover:underline mr-2">
                       {item.Ten_cua_hang}
                       </p>
                     </div>
@@ -121,12 +111,11 @@ const DetailsPopup = ({ open, onClose, maDonHang, trangThaiDonHang }) => {
                               Đã đánh giá
                             </span>
                           ) : (
-                            <button
-                              onClick={() => handleReviewClick(item)}
-                              className="text-blue-500 hover:underline font-medium cursor-pointer mr-2"
+                            <span
+                              className="text-gray-500 mr-2"
                             >
-                              Đánh giá sản phẩm
-                            </button>
+                              Sản phẩm chưa được đánh giá
+                            </span>
                           )}
                         </div>
                       )}
@@ -191,17 +180,10 @@ const DetailsPopup = ({ open, onClose, maDonHang, trangThaiDonHang }) => {
               </div>
             </div>
           </div>
-
-          <ReviewPopup
-            open={openReviewPopup}
-            onClose={() => setOpenReviewPopup(false)}
-            product={selectedProduct}
-            maDonHang={maDonHang}
-          />
         </div>
       </div>
     )
   );
 };
 
-export default DetailsPopup;
+export default ShopOrderDetailsPopup;

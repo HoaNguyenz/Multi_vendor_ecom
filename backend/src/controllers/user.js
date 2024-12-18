@@ -595,6 +595,125 @@ const getMyReview = async (req, res) => {
 };
 
 
+const getSellerInfoByStoreId = async (req, res) => {
+  const { ma_cua_hang } = req.params;
+
+  try {
+    const result = await sql.query`
+      SELECT *
+      FROM Nguoi_ban_va_Cua_hang AS N
+      JOIN Dia_chi AS D ON N.Dia_chi = D.ID
+      WHERE N.Ma_cua_hang = ${ma_cua_hang}
+    `;
+    const seller = result.recordset[0];
+    if (!seller) {
+      return res.status(404).json({ message: "Cửa hàng không tồn tại." });
+    }
+    res.status(200).json(seller);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Lỗi khi lấy thông tin người bán.",
+      error: error.message,
+    });
+  }
+};
+
+const getRatingsByStoreId = async (req, res) => {
+  const { ma_cua_hang } = req.params; // Lấy mã cửa hàng từ params
+
+  try {
+    // Truy vấn để lấy tất cả đánh giá từ tất cả sản phẩm thuộc cửa hàng
+    const query = `
+      SELECT 
+        dg.Diem_danh_gia
+      FROM Danh_gia dg
+      JOIN San_pham sp ON dg.Ma_san_pham = sp.Ma_san_pham
+      WHERE sp.Ma_cua_hang = @MaCuaHang
+    `;
+
+    const request = new sql.Request();
+    request.input("MaCuaHang", sql.BigInt, ma_cua_hang);
+
+    const result = await request.query(query);
+
+    // Tính điểm rating trung bình
+    const ratings = result.recordset.map((item) => item.Diem_danh_gia);
+    const totalRatings = ratings.length;
+    const averageRating =
+      totalRatings > 0
+        ? ratings.reduce((sum, rating) => sum + rating, 0) / totalRatings
+        : 0;
+
+    // Trả về kết quả
+    res.status(200).json({
+      totalRatings,
+      averageRating: averageRating.toFixed(2), // Làm tròn đến 2 chữ số thập phân
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy đánh giá:", error);
+    res.status(500).json({
+      message: "Lỗi khi lấy đánh giá.",
+      error: error.message,
+    });
+  }
+};
+
+const getProductsByStoreId = async (req, res) => {
+  const { ma_cua_hang } = req.params; // Lấy mã cửa hàng từ params
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 20;
+
+  try {
+    const result = await sql.query`
+      SELECT 
+          sp.Ma_san_pham,
+          sp.Ten_san_pham,
+          sp.Gia,
+          sp.SL_da_ban,
+          sp.Ten_danh_muc,
+          sp.Thoi_gian_tao,
+          sp.Url_thumbnail,
+          ISNULL(SUM(msp.So_luong_ton_kho), 0) AS Ton_kho
+      FROM San_pham sp
+      LEFT JOIN Mau_ma_san_pham msp ON sp.Ma_san_pham = msp.Ma_san_pham
+      WHERE sp.Ma_cua_hang = ${ma_cua_hang}
+      GROUP BY sp.Ma_san_pham, sp.Ten_san_pham, sp.Gia, sp.SL_da_ban, sp.Ten_danh_muc, sp.Thoi_gian_tao, sp.Url_thumbnail
+      ORDER BY sp.Thoi_gian_tao DESC
+      OFFSET ${(page - 1) * limit} ROWS
+      FETCH NEXT ${limit} ROWS ONLY
+    `;
+
+    const products = result.recordset;
+    if (products.length === 0) {
+      return res.status(404).json({ message: "Không có sản phẩm nào." });
+    }
+
+    let message = {};
+    if (page == 1) {
+      const countProduct = await sql.query`
+        SELECT COUNT(*) as count
+        FROM San_pham
+        WHERE Ma_cua_hang = ${ma_cua_hang}
+      `;
+      const count = countProduct.recordset[0].count;
+      const totalPages = Math.ceil(count / limit);
+      message.totalPages = totalPages;
+    }
+
+    message.products = products;
+    console.log(message);
+    res.status(200).json(message);
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+    res.status(500).json({
+      message: "Lỗi khi lấy danh sách sản phẩm.",
+      error: error.message,
+    });
+  }
+};
+
+
 module.exports = {
   getUserInfo,
   updateUser,
@@ -612,7 +731,10 @@ module.exports = {
   addReview,
   getReview,
   productInOrder,
-  getMyReview
+  getMyReview,
+  getSellerInfoByStoreId,
+  getRatingsByStoreId,
+  getProductsByStoreId
 };
 
 // CREATE DATABASE eCommerce;

@@ -5,7 +5,8 @@ const ReviewForEachProduct = ({ reviewData, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg w-3/5 max-w-2xl shadow-lg">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Đánh giá sản phẩm</h2>
+          <h2 className="text-xl font-bold">Đánh giá từ người dùng
+          </h2>
           <button
             onClick={onClose}
             className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600"

@@ -16,12 +16,14 @@ const ProductDetails = () => {
   const [stock, setStock] = useState(null); // Tồn kho của tổ hợp được chọn
   const [currentImageIndex, setCurrentImageIndex] = useState(0); // State để theo dõi hình ảnh hiện tại
   const [quantity, setQuantity] = useState(1);
+  const [seller, setSeller] = useState(null); // Thêm state cho cửa hàng
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`/product-detail/${id}`);
         setProduct(response.data);
+        console.log(response.data);
         setProductImg(response.data.hinh_anh_san_phams);
 
         if (response.data.mau_ma_san_phams.length > 0) {
@@ -44,6 +46,24 @@ const ProductDetails = () => {
 
     fetchProduct();
   }, [id]);
+
+  const fetchSeller = async () => {
+    try {
+      console.log(product.Ma_cua_hang);
+      const response = await axios.get(
+        `/seller-of-product?ma_cua_hang=${product.Ma_cua_hang}`
+      );
+      setSeller(response.data);
+    } catch (error) {
+      console.error("Error fetching seller info:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (product) {
+      fetchSeller();
+    }
+  }, [product]);
 
   const handleColorChange = (color) => {
     setSelectedColor(color);
@@ -131,13 +151,13 @@ const ProductDetails = () => {
       }
       const cartResponse = await axios.get("/cart");
       const addedProduct = cartResponse.data.find(
-        (item) => item.Mau_ma_sp === colorSizeOption.id && item.So_luong === quantity
+        (item) =>
+          item.Mau_ma_sp === colorSizeOption.id && item.So_luong === quantity
       );
       if (addedProduct) {
         alert("Sản phẩm này đã có trong giỏ hàng của bạn rồi.");
         return;
-      }
-      else {
+      } else {
         const data = {
           mau_ma_sp: colorSizeOption.id,
           so_luong: quantity,
@@ -156,7 +176,8 @@ const ProductDetails = () => {
       );
       const cartResponse = await axios.get("/cart");
       const addedProduct = cartResponse.data.find(
-        (item) => item.Mau_ma_sp === colorSizeOption.id && item.So_luong === quantity
+        (item) =>
+          item.Mau_ma_sp === colorSizeOption.id && item.So_luong === quantity
       );
       const addedProductArray = addedProduct ? [addedProduct] : [];
       console.log(addedProduct);
@@ -164,6 +185,10 @@ const ProductDetails = () => {
     } catch (error) {
       console.error("Error fetching cart:", error);
     }
+  };
+
+  const handleNavigate = () => {
+    navigate(`/shop/${product.Ma_cua_hang}`);
   };
 
   return (
@@ -219,7 +244,6 @@ const ProductDetails = () => {
             {product.Gia.toLocaleString()}₫
           </p>
           <p className="text-gray-600 mb-6">{product.Mo_ta}</p>
-
           <div className="mb-6">
             <h4 className="text-lg font-medium mb-2">Màu sắc:</h4>
             <div className="flex gap-2">
@@ -301,6 +325,26 @@ const ProductDetails = () => {
               <FaRegMoneyBill1 size={20} /> Mua ngay
             </button>
           </div>
+        </div>
+        <div className="flex-1">
+          {seller && (
+            <div className="p-4 rounded-md mb-6 flex items-center gap-4 border-[1px] border-gray-200">
+              <img
+                className="w-[50px] h-[50px] object-cover rounded-ful"
+                src={seller.Url_logo}
+                alt={`Hình ảnh sản phẩm shop`}
+              />
+              <div>
+                <p>Tên cửa hàng </p>
+                <h3
+                  className="text-lg font-semibold text-blue-500 hover:underline cursor-pointer"
+                  onClick={handleNavigate}
+                >
+                  {seller.Ten}
+                </h3>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

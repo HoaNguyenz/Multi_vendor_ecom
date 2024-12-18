@@ -12,7 +12,6 @@ const ShopInfo = ({ isOwner }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch shop data
     axios
       .get(`/seller-info`)
       .then((res) => {
@@ -23,8 +22,6 @@ const ShopInfo = ({ isOwner }) => {
         console.error(error);
         setIsLoading(false);
       });
-
-    // Fetch products data
     axios
       .get(`/product-seller`)
       .then((res) => {
@@ -34,6 +31,18 @@ const ShopInfo = ({ isOwner }) => {
       .catch((error) => {
         console.error(error);
         setIsProductLoading(false);
+      });
+      axios
+      .get(`/shop-rating`)
+      .then((res) => {
+        setData((prevData) => ({
+          ...prevData,
+          ratings: res.data.averageRating || "0/5",
+          totalRatings: res.data.totalRatings || 0,
+        }));
+      })
+      .catch((error) => {
+        console.error("Lỗi khi lấy rating của shop:", error);
       });
   }, []);
 
@@ -57,7 +66,7 @@ const ShopInfo = ({ isOwner }) => {
         </h3>
         <div className="mt-5 space-y-3">
           <div>
-            <h5 className="font-bold">Address</h5>
+            <h5 className="font-bold">Địa chỉ của shop</h5>
             <p className="text-gray-700">
               {`${data.So_nha}, ` || ""}
               {`${data.Phuong_or_Xa}, ` || ""}
@@ -66,16 +75,16 @@ const ShopInfo = ({ isOwner }) => {
             </p>
           </div>
           <div>
-            <h5 className="font-bold">Phone Number</h5>
+            <h5 className="font-bold">Số điện thoại</h5>
             <p className="text-gray-700">{data.Sdt[0] || "N/A"}</p>
           </div>
           <div>
-            <h5 className="font-bold">Total Products</h5>
+            <h5 className="font-bold">Sản phẩm có trong shop</h5>
             <p className="text-gray-700">{products.length}</p>
           </div>
           <div>
             <h5 className="font-bold">Shop Ratings</h5>
-            <p className="text-gray-700">{data.ratings || "0/5"}</p>
+            <p className="text-gray-700">{data.ratings? data.ratings : "0"}/5 ({data.totalRatings?data.totalRatings : 0} lượt đánh giá)</p>
           </div>
           <div>
             <h5 className="font-bold">Mô tả</h5>

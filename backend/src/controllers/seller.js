@@ -212,6 +212,289 @@ const confirmDelivery = async (req, res) => {
   }
 };
 
+const getStatus = async (req, res) => {
+  const Sdt = req.user.id; // Số điện thoại của người bán (lấy từ user đã đăng nhập)
+
+  try {
+    // Truy vấn tất cả đơn hàng thuộc cửa hàng của người bán
+    let str = `
+      SELECT 
+        dh.*
+      FROM Don_hang dh
+      WHERE dh.Ma_cua_hang = (
+        SELECT Ma_cua_hang 
+        FROM Nguoi_ban_va_Cua_hang 
+        WHERE Sdt = @Sdt
+      )
+    `;
+    const request = new sql.Request();
+    request.input("Sdt", sql.Char, Sdt);
+    
+    const result = await request.query(str);
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin đơn hàng:", error);
+    res.status(500).json({
+      message: "Lỗi khi lấy thông tin đơn hàng.",
+      error: error.message,
+    });
+  }
+};
+
+const salesSummary = async (req, res) => {
+  try {
+    const { timeRange } = req.query;
+    const Sdt = req.user.id; // Lấy số điện thoại từ user đã đăng nhập
+
+    if (!Sdt) {
+      return res.status(400).json({ error: "Sdt is required" });
+    }
+
+    const now = new Date();
+    const gmtOffset = 7;
+    let startDate, endDate;
+
+    switch (timeRange) {
+      case "today":
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(),);
+        endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+        break;
+      case "last3Days":
+        startDate = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime());
+        break;
+      case "lastWeek":
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime());
+        break;
+      case "last15Days":
+        startDate = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime());
+        break;
+      default:
+        return res.status(400).json({ error: "Invalid time range" });
+    }
+    startDate = new Date(startDate.getTime() + gmtOffset * 60 * 60 * 1000);
+    endDate = new Date(endDate.getTime() + gmtOffset * 60 * 60 * 1000);
+    // Truy vấn để tìm Ma_cua_hang dựa trên Sdt
+    const maCuaHangQuery = `
+      SELECT Ma_cua_hang 
+      FROM Nguoi_ban_va_Cua_hang 
+      WHERE Sdt = @Sdt
+    `;
+    const request = new sql.Request();
+    request.input("Sdt", sql.Char, Sdt);
+
+    const maCuaHangResult = await request.query(maCuaHangQuery);
+    if (!maCuaHangResult.recordset.length) {
+      return res.status(404).json({ error: "No store found for this user" });
+    }
+
+    const maCuaHang = maCuaHangResult.recordset[0].Ma_cua_hang;
+
+    // Truy vấn doanh số cho cửa hàng hiện tại
+    const salesQuery = `
+      SELECT 
+        SUM(dh.Tong_gia) AS totalSales,
+        SUM(ct.So_luong) AS productsSold,
+        COUNT(DISTINCT dh.Ma_don_hang) AS orders
+      FROM Don_hang dh
+      JOIN Chi_tiet_don_hang ct ON dh.Ma_don_hang = ct.Ma_don_hang
+      WHERE dh.Trang_thai = N'Đã giao thành công'
+        AND dh.Thoi_gian_giao_thuc_te >= @startDate
+        AND dh.Thoi_gian_giao_thuc_te < @endDate
+        AND dh.Ma_cua_hang = @maCuaHang
+    `;
+
+    request.input("startDate", sql.SmallDateTime, startDate);
+    request.input("endDate", sql.SmallDateTime, endDate);
+    request.input("maCuaHang", sql.BigInt, maCuaHang);
+
+    const salesResult = await request.query(salesQuery);
+    res.json(salesResult.recordset[0]);
+  } catch (error) {
+    console.error("Error fetching sales summary:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getCompletedOrders = async (req, res) => {
+  try {
+    const { timeRange } = req.query;
+    const Sdt = req.user.id; // Lấy số điện thoại từ user đã đăng nhập
+
+    if (!Sdt) {
+      return res.status(400).json({ error: "Sdt is required" });
+    }
+
+    const now = new Date();
+    const gmtOffset = 7;
+    let startDate, endDate;
+
+    switch (timeRange) {
+      case "today":
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
+        break;
+      case "last3Days":
+        startDate = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime());
+        break;
+      case "lastWeek":
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime());
+        break;
+      case "last15Days":
+        startDate = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime());
+        break;
+      default:
+        return res.status(400).json({ error: "Invalid time range" });
+    }
+    startDate = new Date(startDate.getTime() + gmtOffset * 60 * 60 * 1000);
+    endDate = new Date(endDate.getTime() + gmtOffset * 60 * 60 * 1000);
+
+    const request = new sql.Request();
+    request.input("startDate", sql.SmallDateTime, startDate);
+    request.input("endDate", sql.SmallDateTime, endDate);
+    request.input("Sdt", sql.Char, Sdt);
+
+    const query = `
+      SELECT 
+        *
+      FROM Don_hang dh
+      WHERE dh.Trang_thai = N'Đã giao thành công'
+        AND dh.Thoi_gian_giao_thuc_te >= @startDate
+        AND dh.Thoi_gian_giao_thuc_te < @endDate
+        AND dh.Ma_cua_hang = (
+          SELECT Ma_cua_hang FROM Nguoi_ban_va_Cua_hang WHERE Sdt = @Sdt
+        )
+    `;
+
+    const result = await request.query(query);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching completed orders:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const getProductRank = async (req, res) => {
+  const Sdt = req.user.id; // Lấy số điện thoại người bán từ user đã đăng nhập
+  const filter = req.query.filter || 'revenue'; // Lọc theo doanh thu hoặc số lượng bán
+  let query;
+  try {
+    // Truy vấn thông tin thứ hạng sản phẩm theo doanh thu hoặc số lượng bán
+    if (filter === 'revenue') {
+      query = `
+      SELECT 
+    sp.Ma_san_pham,
+    sp.Ten_san_pham,
+    SUM(ctdh.So_luong) AS So_luong_ban,
+    SUM(ctdh.So_luong * sp.Gia) AS Doanh_thu
+    FROM 
+        Chi_tiet_don_hang ctdh
+    JOIN 
+        Don_hang dh ON ctdh.Ma_don_hang = dh.Ma_don_hang
+    JOIN 
+        Mau_ma_san_pham mmsp ON ctdh.Mau_ma_sp = mmsp.ID  -- Kết nối với bảng Mau_ma_san_pham
+    JOIN 
+        San_pham sp ON mmsp.Ma_san_pham = sp.Ma_san_pham  -- Kết nối từ Mau_ma_san_pham tới San_pham
+    WHERE 
+        dh.Ma_cua_hang = (SELECT Ma_cua_hang FROM Nguoi_ban_va_Cua_hang WHERE Sdt = @Sdt)
+        AND dh.Trang_thai = N'Đã giao thành công'  -- Chỉ lấy các đơn hàng đã giao thành công
+    GROUP BY 
+        sp.Ma_san_pham, sp.Ten_san_pham
+    ORDER BY 
+        Doanh_thu DESC;
+    `;
+    }
+    else{
+      query = `
+      SELECT 
+    sp.Ma_san_pham,
+    sp.Ten_san_pham,
+    SUM(ctdh.So_luong) AS So_luong_ban,
+    SUM(ctdh.So_luong * sp.Gia) AS Doanh_thu
+    FROM 
+        Chi_tiet_don_hang ctdh
+    JOIN 
+        Don_hang dh ON ctdh.Ma_don_hang = dh.Ma_don_hang
+    JOIN 
+        Mau_ma_san_pham mmsp ON ctdh.Mau_ma_sp = mmsp.ID  -- Kết nối với bảng Mau_ma_san_pham
+    JOIN 
+        San_pham sp ON mmsp.Ma_san_pham = sp.Ma_san_pham  -- Kết nối từ Mau_ma_san_pham tới San_pham
+    WHERE 
+        dh.Ma_cua_hang = (SELECT Ma_cua_hang FROM Nguoi_ban_va_Cua_hang WHERE Sdt = @Sdt)
+        AND dh.Trang_thai = N'Đã giao thành công'  -- Chỉ lấy các đơn hàng đã giao thành công
+    GROUP BY 
+        sp.Ma_san_pham, sp.Ten_san_pham
+    ORDER BY 
+        So_luong_ban DESC;
+    `;
+    }
+    
+    const request = new sql.Request();
+    request.input("Sdt", sql.Char, Sdt);
+    
+    const result = await request.query(query);
+    console.log(result.recordset);
+    res.status(200).json(result.recordset);
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin thống kê:", error);
+    res.status(500).json({
+      message: "Lỗi khi lấy thông tin thống kê.",
+      error: error.message,
+    });
+  }
+};
+
+const getRatings = async (req, res) => {
+  const Sdt = req.user.id; // Số điện thoại của người bán (lấy từ user đã đăng nhập)
+
+  try {
+    // Truy vấn để lấy tất cả đánh giá từ tất cả sản phẩm thuộc cửa hàng của người bán
+    const query = `
+      SELECT 
+        dg.Diem_danh_gia
+      FROM Danh_gia dg
+      JOIN San_pham sp ON dg.Ma_san_pham = sp.Ma_san_pham
+      WHERE sp.Ma_cua_hang = (
+        SELECT Ma_cua_hang 
+        FROM Nguoi_ban_va_Cua_hang 
+        WHERE Sdt = @Sdt
+      )
+    `;
+
+    const request = new sql.Request();
+    request.input("Sdt", sql.Char, Sdt);
+
+    const result = await request.query(query);
+
+    // Tính điểm rating trung bình
+    const ratings = result.recordset.map((item) => item.Diem_danh_gia);
+    const totalRatings = ratings.length;
+    const averageRating =
+      totalRatings > 0
+        ? ratings.reduce((sum, rating) => sum + rating, 0) / totalRatings
+        : 0;
+
+    // Trả về kết quả
+    res.status(200).json({
+      totalRatings,
+      averageRating: averageRating.toFixed(2), // Làm tròn đến 2 chữ số thập phân
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy đánh giá:", error);
+    res.status(500).json({
+      message: "Lỗi khi lấy đánh giá.",
+      error: error.message,
+    });
+  }
+};
+
+
+
 module.exports = {
   signUpSeller,
   getSellerInfo,
@@ -219,6 +502,11 @@ module.exports = {
   getOrders,
   confirmOrder,
   confirmDelivery,
+  getStatus,
+  salesSummary,
+  getCompletedOrders,
+  getProductRank,
+  getRatings
 };
 
 // CREATE DATABASE eCommerce;

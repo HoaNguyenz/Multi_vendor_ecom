@@ -1,6 +1,7 @@
 import React, { useState} from "react";
 import { Link } from "react-router-dom";
 import { AiOutlineShoppingCart } from "react-icons/ai";
+import { BiPackage } from "react-icons/bi";
 import { useAuth } from "../../../context/AuthContext"; // Import context
 import useLogout from "../../../hooks/useLogout";
 
@@ -23,6 +24,9 @@ const Header = () => {
 
       {/* Biểu tượng Thông báo, Giỏ hàng, và Profile */}
       <div className="flex items-center md:space-x-6 text-white">
+      <Link to="/order">
+          <BiPackage size={28} className="cursor-pointer" />
+        </Link>
         <Link to="/cart">
           <AiOutlineShoppingCart size={28} className="cursor-pointer" />
         </Link>

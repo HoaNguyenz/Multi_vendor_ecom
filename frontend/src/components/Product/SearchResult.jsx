@@ -69,16 +69,54 @@ const SearchResults = () => {
   
     fetchProducts();
   }, [searchTerm, category, filters]);
+
+  const renderFilterText = () => {
+    const filterTexts = [];
+
+    if (searchTerm) {
+      filterTexts.push(`Tìm kiếm: "${searchTerm}"`);
+    }
+
+    if (category) {
+      filterTexts.push(`Danh mục: "${category}"`);
+    }
+
+    if (filters.origins.length > 0) {
+      filterTexts.push(`Xuất xứ: ${filters.origins.join(", ")}`);
+    }
+
+    if (filters.brands.length > 0) {
+      filterTexts.push(`Thương hiệu: ${filters.brands.join(", ")}`);
+    }
+
+    if (filters.priceMin && filters.priceMax) {
+      filterTexts.push(`Giá: từ ${filters.priceMin} đến ${filters.priceMax}`);
+    }
+
+    if (filters.colors.length > 0) {
+      filterTexts.push(`Màu sắc: ${filters.colors.join(", ")}`);
+    }
+
+    if (filters.sizes.length > 0) {
+      filterTexts.push(`Kích cỡ: ${filters.sizes.join(", ")}`);
+    }
+
+    if (filters.inStock !== "") {
+      filterTexts.push(filters.inStock === "true" ? "Còn hàng" : "Hết hàng");
+    }
+
+    return filterTexts.length > 0 ? filterTexts.join(" | ") : "Không có bộ lọc nào được chọn";
+  };
   
   return (
-    <div className="flex">
-      <FilterSidebar filters={filters} setFilters={setFilters} />
+    <div className="flex space-x-4 bg-white">
+      <FilterSidebar filters={filters} setFilters={setFilters}/>
 
-      <div className="w-3/4 p-4">
+      <div className="w-4/5 p-4 mx-auto">
         <h1 className="text-2xl font-bold mb-4">
           Kết quả tìm kiếm cho "{searchTerm || category}"
         </h1>
-
+        <p className="mb-4 text-gray-700">{renderFilterText()}</p>
         {loading ? (
           <p>Đang tải sản phẩm...</p>
         ) : errorMessage ? (

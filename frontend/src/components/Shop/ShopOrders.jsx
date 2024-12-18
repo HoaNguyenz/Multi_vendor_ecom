@@ -5,8 +5,10 @@ import axios from "../../context/configAxios.js";
 import { LuPackageSearch, LuPackageCheck } from "react-icons/lu";
 import { FaTruckFast } from "react-icons/fa6";
 import { MdRateReview } from "react-icons/md";
-import DetailsPopup from "../Order/DetailsPopup.jsx";
+import { BiSolidMessageRoundedX } from "react-icons/bi";
+import ShopOrderDetailsPopup from "./Popup/ShopOrderDetailsPopup";
 import ShopReviewPopup from "./Popup/ShopReviewPopup.jsx";
+import CancelReasonPopup from "./Popup/CancelReasonPopup.jsx";
 
 const ShopOrders = () => {
   const [orders, setOrders] = useState([]); // State lưu danh sách đơn hàng
@@ -16,6 +18,8 @@ const ShopOrders = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [openReviewPopup, setOpenReviewPopup] = useState(false);
   const [selectedOrderForReview, setSelectedOrderForReview] = useState(null);
+  const [openCancelPopup, setOpenCancelPopup] = useState(false);
+  const [cancelReason, setCancelReason] = useState(""); // Lý do hủy
 
   const dateComparator = (v1, v2) => {
     const date1 = new Date(v1); // Chuyển đổi chuỗi ngày thành đối tượng Date
@@ -83,19 +87,16 @@ const ShopOrders = () => {
     }
   };
 
-  //   const handleReviewClick = async (maDonHang, maSanPham) => {
-  //     try {
-  //       const response = await axios.get(`review/${maSanPham}/${maDonHang}`);
-  //       // Nếu có dữ liệu đánh giá, bạn có thể cập nhật vào state hoặc hiển thị trong popup
-  //       setReviewData(response.data); // Cập nhật dữ liệu đánh giá nếu cần
-  //       setOpenReviewPopup(true); // Mở pop-up đánh giá
-  //     } catch (error) {
-  //       console.error("Lỗi khi lấy thông tin đánh giá:", error);
-  //     }
-  //   };
   const handleReviewClick = (maDonHang) => {
     setSelectedOrderForReview(maDonHang);
     setOpenReviewPopup(true);
+  };
+
+  const handleCancelClick = (maDonHang) => {
+    const order = orders.find((order) => order.Ma_don_hang === maDonHang);
+    console.log(order);
+    setCancelReason(order?.Ly_do_huy || ""); // Lấy lý do hủy từ đơn hàng
+    setOpenCancelPopup(true); // Mở popup
   };
 
   // Cột cho DataGrid
@@ -185,14 +186,15 @@ const ShopOrders = () => {
     {
       field: "update",
       headerName:
-        statusFilter === "Đã giao thành công" ? "Đánh giá" : "Cập nhật", // Thay đổi tên cột dựa trên trạng thái lọc
+        statusFilter === "Đã giao thành công" || statusFilter === "Đã hủy"
+          ? "Chi tiết"
+          : "Cập nhật",
       minWidth: 80,
       flex: 0.5,
       headerAlign: "center",
       renderCell: (params) => {
         const trangThai = params.row.Trang_thai;
         if (statusFilter === "Đã giao thành công") {
-          // Nếu trạng thái là "Đã giao thành công", hiển thị cột đánh giá
           return (
             <Button onClick={() => handleReviewClick(params.row.Ma_don_hang)}>
               <MdRateReview size={20} color="black"></MdRateReview>
@@ -212,8 +214,15 @@ const ShopOrders = () => {
               <LuPackageCheck size={20} color="green" />
             </Button>
           );
-        } else {
-          return null;
+        } else if (statusFilter === "Đã hủy") {
+          return (
+            <Button onClick={() => handleCancelClick(params.row.Ma_don_hang)}>
+              <BiSolidMessageRoundedX
+                size={20}
+                color="red"
+              ></BiSolidMessageRoundedX>
+            </Button>
+          );
         }
       },
     },
@@ -248,7 +257,7 @@ const ShopOrders = () => {
         loading={loading}
         disableSelectionOnClick
       />
-      <DetailsPopup
+      <ShopOrderDetailsPopup
         open={openPopup}
         onClose={handleClosePopup}
         maDonHang={selectedOrderId}
@@ -261,6 +270,11 @@ const ShopOrders = () => {
         open={openReviewPopup}
         onClose={() => setOpenReviewPopup(false)}
         maDonHang={selectedOrderForReview}
+      />
+      <CancelReasonPopup
+        open={openCancelPopup}
+        onClose={() => setOpenCancelPopup(false)}
+        reason={cancelReason}
       />
     </div>
   );
