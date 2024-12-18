@@ -349,7 +349,7 @@ const getOrder = async (req, res) => {
             dh.Dia_chi_giao_hang,
             dh.Tong_gia
           FROM Don_hang AS dh
-          WHERE dh.Sdt = ${sdt} AND dh.Trang_thai = ${trang_thai}
+          WHERE dh.Sdt = ${sdt} AND dh.Trang_thai = ${trang_thai} AND dh.Ma_cua_hang != -1
         `;
     } else {
       result = await sql.query`
@@ -366,7 +366,7 @@ const getOrder = async (req, res) => {
             dh.Dia_chi_giao_hang,
             dh.Tong_gia
           FROM Don_hang AS dh
-          WHERE dh.Sdt = ${sdt}
+          WHERE dh.Sdt = ${sdt} AND dh.Ma_cua_hang != -1
         `;
     }
 

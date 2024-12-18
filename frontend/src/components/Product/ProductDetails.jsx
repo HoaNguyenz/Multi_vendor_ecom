@@ -22,6 +22,12 @@ const ProductDetails = () => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(`/product-detail/${id}`);
+        console.log(response.data.Ma_cua_hang)
+        if (response.data.Ma_cua_hang === '-1') {
+          alert("Sản phẩm không tồn tại.");
+          navigate("/");
+          return;
+        }
         setProduct(response.data);
         console.log(response.data);
         setProductImg(response.data.hinh_anh_san_phams);
@@ -45,7 +51,7 @@ const ProductDetails = () => {
     };
 
     fetchProduct();
-  }, [id]);
+  }, [id, navigate]);
 
   const fetchSeller = async () => {
     try {

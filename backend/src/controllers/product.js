@@ -506,11 +506,32 @@ const deleteProduct = async (req, res) => {
   const productId = req.params.id;
 
   try {
-    await sql.query`
-        update San_pham
-        set Ma_cua_hang = -1
-        where Ma_san_pham = ${productId}
+    // Bước 1: Tìm các đơn hàng liên quan đến sản phẩm
+    const relatedOrders = await sql.query`
+      SELECT DISTINCT ctdh.Ma_don_hang
+      FROM Chi_tiet_don_hang ctdh
+      JOIN Mau_ma_san_pham msp ON ctdh.Mau_ma_sp = msp.ID
+      WHERE msp.Ma_san_pham = ${productId}
+    `;
+
+    // Lấy danh sách các Ma_don_hang
+    const orderIds = relatedOrders.recordset.map(order => order.Ma_don_hang);
+
+    // Bước 2: Cập nhật Ma_cua_hang của các đơn hàng liên quan
+    if (orderIds.length > 0) {
+      await sql.query`
+        UPDATE Don_hang
+        SET Ma_cua_hang = -1
+        WHERE Ma_don_hang IN (${orderIds})
       `;
+    }
+
+    // Bước 3: Xóa sản phẩm bằng cách set Ma_cua_hang = -1 trong San_pham
+    await sql.query`
+      UPDATE San_pham
+      SET Ma_cua_hang = -1
+      WHERE Ma_san_pham = ${productId}
+    `;
 
     res.status(200).json({ message: "Xóa sản phẩm thành công." });
   } catch (error) {
@@ -518,6 +539,7 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ message: "Xóa sản phẩm không thành công." });
   }
 };
+
 
 const getProductsByCategory = async (req, res) => {
   const { category } = req.query;
