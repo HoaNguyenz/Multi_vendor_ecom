@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import { Link } from "react-router-dom";
 const Verify = () => {
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -15,22 +15,22 @@ const Verify = () => {
     setError("");
 
     try {
-        const response = await axios.post(
-            "http://localhost:5000/verify",
-            { email, code: verificationCode },
-        );
+      const response = await axios.post("http://localhost:5000/verify", {
+        email,
+        code: verificationCode,
+      });
 
-        if (response.status === 200) {
-            alert("Xác thực thành công.");
-            navigate("/login"); // Điều hướng sang trang chủ sau khi xác minh
-        }
+      if (response.status === 200) {
+        alert("Xác thực thành công.");
+        navigate("/login"); // Điều hướng sang trang chủ sau khi xác minh
+      }
     } catch (error) {
-        setError("Mã xác minh không hợp lệ hoặc có lỗi xảy ra.");
-        console.error(error);
+      setError("Mã xác minh không hợp lệ hoặc có lỗi xảy ra.");
+      console.error(error);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   return (
     <div className="bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -96,6 +96,12 @@ const Verify = () => {
               >
                 {loading ? "Đang xác thực..." : "Xác minh"}
               </button>
+            </div>
+
+            <div className="flex w-full justify-between items-center">
+              <Link to="/" className="text-blue-600 hover:underline">
+                Trang chủ
+              </Link>
             </div>
           </form>
         </div>

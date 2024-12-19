@@ -5,7 +5,7 @@ import axios from "../../context/configAxios";
 import { useAuth } from "../../context/AuthContext"; // Import hook useAuth
 
 const Login = () => {
-  const { login } = useAuth();  // Lấy hàm login từ context
+  const { login } = useAuth(); // Lấy hàm login từ context
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
@@ -13,30 +13,37 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Ngăn chặn việc gửi form mặc định
-  
+
     const submitter = e.nativeEvent.submitter;
-  
+
     if (submitter.name === "normalLogin" || submitter.name === "sellerLogin") {
       try {
         const data = { email, mat_khau: password };
-  
+
         // Kiểm tra xem người dùng có phải là người bán không (trước khi đăng nhập)
         if (submitter.name === "sellerLogin") {
           const sellerResponse = await axios.post("/isSeller", { email });
-  
+
           if (sellerResponse.status !== 200) {
             alert(sellerResponse.data.message);
             return;
           }
         }
-  
+
         // Gửi yêu cầu đăng nhập tới backend
         const response = await axios.post("/login", data);
-  
+
         if (response.status === 200) {
           // Lưu token và thông tin người dùng vào context
-          login({ token: response.data.token, email: email, username: response.data.username, la_nguoi_ban: response.data.la_nguoi_ban, sdt: response.data.sdt, url_avatar: response.data.url_avatar }); // Cập nhật thông tin người dùng trong context
-  
+          login({
+            token: response.data.token,
+            email: email,
+            username: response.data.username,
+            la_nguoi_ban: response.data.la_nguoi_ban,
+            sdt: response.data.sdt,
+            url_avatar: response.data.url_avatar,
+          }); // Cập nhật thông tin người dùng trong context
+
           // Điều hướng người dùng
           if (submitter.name === "normalLogin") {
             navigate("/"); // Người dùng thường
@@ -62,7 +69,10 @@ const Login = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email
               </label>
               <div className="mt-1">
@@ -80,7 +90,10 @@ const Login = () => {
 
             {/* Mật khẩu */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Mật khẩu
               </label>
               <div className="mt-1 relative">
@@ -111,31 +124,57 @@ const Login = () => {
 
             <div className="flex justify-between">
               <div className="flex">
-                <input type="checkbox" name="remember-me" id="remember-me" className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">Nhớ tài khoản</label>
+                <input
+                  type="checkbox"
+                  name="remember-me"
+                  id="remember-me"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-900"
+                >
+                  Nhớ tài khoản
+                </label>
               </div>
               <div className="text-sm">
-                <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+                <Link
+                  to="/forgot-password"
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                >
                   Quên mật khẩu?
                 </Link>
               </div>
             </div>
 
             <div>
-              <button type="submit" name="normalLogin" className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600">
+              <button
+                type="submit"
+                name="normalLogin"
+                className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-500 hover:bg-blue-600"
+              >
                 Đăng nhập
               </button>
             </div>
             <div>
-              <button type="submit" name="sellerLogin" className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-300">
+              <button
+                type="submit"
+                name="sellerLogin"
+                className="group relative w-full h-[40px] flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-300"
+              >
                 Đăng nhập với tư cách người bán
               </button>
             </div>
 
-            <div className="flex w-full">
-              <h4>Chưa có tài khoản?</h4>
-              <Link to="/sign-up" className="text-blue-600 pl-2">
-                Đăng kí
+            <div className="flex w-full justify-between items-center">
+              <div className="flex items-center">
+                <h4>Chưa có tài khoản?</h4>
+                <Link to="/sign-up" className="text-blue-600 pl-2 hover:underline">
+                  Đăng kí
+                </Link>
+              </div>
+              <Link to="/" className="text-blue-600 hover:underline">
+                Trang chủ
               </Link>
             </div>
           </form>

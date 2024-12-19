@@ -1,6 +1,5 @@
 import { React, useState } from "react";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import styles from "../../styles/styles";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -37,11 +36,13 @@ const Signup = () => {
         email,
         sdt: phone,
         mat_khau: password,
-        xac_nhan_mat_khau: confirmPassword
+        xac_nhan_mat_khau: confirmPassword,
       });
 
       if (response.status === 201) {
-        alert("Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản.");
+        alert(
+          "Đăng ký thành công! Vui lòng kiểm tra email để xác minh tài khoản."
+        );
         navigate("/verify"); // Chuyển hướng sang trang xác minh tài khoản
       }
     } catch (error) {
@@ -53,7 +54,6 @@ const Signup = () => {
         alert("Lỗi kết nối. Vui lòng thử lại.");
       }
     }
-  
   };
   return (
     <div className=" bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -202,11 +202,15 @@ const Signup = () => {
                 Đăng kí
               </button>
             </div>
-
-            <div className={`${styles.noramlFlex} w-full`}>
-              <h4>Đã có tài khoản?</h4>
-              <Link to="/login" className="text-blue-600 pl-2">
-                Đăng nhập
+            <div className="flex w-full justify-between items-center">
+              <div className={`flex items-center`}>
+                <h4>Đã có tài khoản?</h4>
+                <Link to="/login" className="text-blue-600 pl-2 hover:underline">
+                  Đăng nhập
+                </Link>
+              </div>
+              <Link to="/" className="text-blue-600 hover:underline">
+                Trang chủ
               </Link>
             </div>
           </form>

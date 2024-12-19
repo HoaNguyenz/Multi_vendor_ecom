@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -69,6 +69,12 @@ const ForgotPassword = () => {
 
             <div className="mt-4 text-center text-sm">
               {message && <p>{message}</p>}
+            </div>
+
+            <div className="flex w-full justify-between items-center">
+              <Link to="/" className="text-blue-600 hover:underline">
+                Trang chủ
+              </Link>
             </div>
           </form>
         </div>

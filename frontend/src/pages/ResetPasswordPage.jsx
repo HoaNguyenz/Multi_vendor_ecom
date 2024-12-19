@@ -14,10 +14,13 @@ const ResetPassword = () => {
     setIsLoading(true);
     try {
       // Call the backend API to reset the password
-      const response = await axios.post("http://localhost:5000/reset-password", {
-        verificationCode,
-        newPassword,
-      });
+      const response = await axios.post(
+        "http://localhost:5000/reset-password",
+        {
+          verificationCode,
+          newPassword,
+        }
+      );
 
       if (response.status === 200) {
         setMessage("Mật khẩu đã được cập nhật thành công.");
@@ -42,7 +45,10 @@ const ResetPassword = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="verificationCode" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="verificationCode"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Mã xác minh
               </label>
               <div className="mt-1">
@@ -58,7 +64,10 @@ const ResetPassword = () => {
             </div>
 
             <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="newPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Mật khẩu mới
               </label>
               <div className="mt-1">
@@ -92,6 +101,12 @@ const ResetPassword = () => {
                   </Link>
                 </div>
               )}
+            </div>
+
+            <div className="flex w-full justify-between items-center">
+              <Link to="/" className="text-blue-600 hover:underline">
+                Trang chủ
+              </Link>
             </div>
           </form>
         </div>
