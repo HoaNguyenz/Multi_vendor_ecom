@@ -26,20 +26,31 @@ const getUserInfo = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { sdt, ho_va_ten, gioi_tinh, ngay_sinh, url_avatar } = req.body;
-  console.log(gioi_tinh);
+  let { sdt, ho_va_ten, gioi_tinh, ngay_sinh, url_avatar } = req.body;
+  // console.log(req.body);
 
   try {
     // Update user information in the Nguoi_dung_va_Gio_hang table
-    await sql.query`
-        UPDATE Nguoi_dung_va_Gio_hang 
-        SET 
-          Ho_va_ten = ${ho_va_ten}, 
-          Gioi_tinh = ${gioi_tinh}, 
-          Ngay_sinh = ${ngay_sinh},
-          Url_avatar = ${url_avatar}
-        WHERE Sdt = ${sdt}
-      `;
+    if (!url_avatar) {
+      await sql.query`
+      UPDATE Nguoi_dung_va_Gio_hang 
+      SET 
+        Ho_va_ten = ${ho_va_ten}, 
+        Gioi_tinh = ${gioi_tinh}, 
+        Ngay_sinh = ${ngay_sinh}
+      WHERE Sdt = ${sdt}
+    `;
+    } else {
+      await sql.query`
+          UPDATE Nguoi_dung_va_Gio_hang 
+          SET 
+            Ho_va_ten = ${ho_va_ten}, 
+            Gioi_tinh = ${gioi_tinh}, 
+            Ngay_sinh = ${ngay_sinh},
+            Url_avatar = ${url_avatar}
+          WHERE Sdt = ${sdt}
+        `;
+    }
 
     res
       .status(200)
@@ -378,17 +389,17 @@ const getOrder = async (req, res) => {
 };
 
 const addAddress = async (req, res) => {
-  console.log("Request Body:", req.body);
+  // console.log("Request Body:", req.body);
   const { so_nha, phuong_or_xa, quan_or_huyen, tinh_or_tp } = req.body;
   const sdt = req.user.id;
   const id = snowflake.generate();
-  console.log(sdt);
-  console.log({ so_nha, phuong_or_xa, quan_or_huyen, tinh_or_tp });
+  // console.log(sdt);
+  // console.log({ so_nha, phuong_or_xa, quan_or_huyen, tinh_or_tp });
   try {
-    await sql.query(`
+    await sql.query`
         INSERT INTO Dia_chi (Sdt, ID, So_nha, Phuong_or_Xa, Quan_or_Huyen, Tinh_or_TP)
-        VALUES ('${sdt}', ${id}, '${so_nha}', '${phuong_or_xa}', '${quan_or_huyen}', '${tinh_or_tp}')
-      `);
+        VALUES (${sdt}, ${id}, ${so_nha}, ${phuong_or_xa}, ${quan_or_huyen}, ${tinh_or_tp})
+      `;
 
     res.status(200).json({ message: "Đã thêm địa chỉ giao hàng." });
   } catch (error) {
@@ -419,11 +430,11 @@ const updateAddress = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const result = await sql.query(`
+    const result = await sql.query`
         UPDATE Dia_chi
-        SET So_nha = '${so_nha}', Phuong_or_Xa = '${phuong_or_xa}', Quan_or_Huyen = '${quan_or_huyen}', Tinh_or_TP = '${tinh_or_tp}'
+        SET So_nha = ${so_nha}, Phuong_or_Xa = ${phuong_or_xa}, Quan_or_Huyen = ${quan_or_huyen}, Tinh_or_TP = ${tinh_or_tp}
         WHERE ID = ${id}
-      `);
+      `;
 
     if (result.rowsAffected == 0) {
       throw new Error("Địa chỉ không tồn tại.");
@@ -457,7 +468,15 @@ const deleteAddress = async (req, res) => {
 
 // Đánh giá sản phẩm
 const addReview = async (req, res) => {
-  const { sdt, maSanPham, diemDanhGia, nhanXet, urlHinhAnh, mauMaSp, maDonHang } = req.body;
+  const {
+    sdt,
+    maSanPham,
+    diemDanhGia,
+    nhanXet,
+    urlHinhAnh,
+    mauMaSp,
+    maDonHang,
+  } = req.body;
 
   if (
     !sdt ||
@@ -562,7 +581,9 @@ const productInOrder = async (req, res) => {
 
     // Xử lý kết quả
     if (!result.recordset || result.recordset.length === 0) {
-      return res.status(404).json({ message: "Không tìm thấy chi tiết đơn hàng" });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy chi tiết đơn hàng" });
     }
 
     res.json(result.recordset);
@@ -593,7 +614,6 @@ const getMyReview = async (req, res) => {
     res.status(500).json({ message: "Lỗi server!" });
   }
 };
-
 
 const getSellerInfoByStoreId = async (req, res) => {
   const { ma_cua_hang } = req.params;
@@ -713,7 +733,6 @@ const getProductsByStoreId = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getUserInfo,
   updateUser,
@@ -734,7 +753,7 @@ module.exports = {
   getMyReview,
   getSellerInfoByStoreId,
   getRatingsByStoreId,
-  getProductsByStoreId
+  getProductsByStoreId,
 };
 
 // CREATE DATABASE eCommerce;
