@@ -53,14 +53,12 @@ const ProfilePage = () => {
 
   const handleDeleteAddress = async (addressId) => {
     try {
-      // Gửi yêu cầu DELETE tới backend
       const response = await axios.delete(`/address/${addressId}`);
-      console.log(response.data.message);  // In ra thông báo thành công
-  
-      // Sau khi xóa thành công, gọi lại fetchUserInfo để làm mới danh sách địa chỉ
+      
       fetchUserInfo();
     } catch (err) {
       console.error("Xóa địa chỉ thất bại:", err);
+      alert("Không thể xóa địa chỉ này do liên kết với cửa hàng của bạn");
     }
   };
   
@@ -128,23 +126,6 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* <div className="mt-8">
-          <h2 className="text-xl font-bold mb-4">Danh sách địa chỉ</h2>
-          {addresses.length > 0 ? (
-            <ul>
-              {addresses.map((address, index) => (
-                <li key={index} className="mb-4">
-                  <p className="text-gray-500 text-sm">Địa chỉ {index + 1}:</p>
-                  <p className="text-gray-900 font-medium">
-                    {`${address.So_nha}, ${address.Phuong_or_Xa}, ${address.Quan_or_Huyen}, ${address.Tinh_or_TP}`}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500">Không có địa chỉ nào.</p>
-          )}
-        </div> */}
         <div className="mt-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Danh sách địa chỉ</h2>
