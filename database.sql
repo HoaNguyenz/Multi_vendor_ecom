@@ -92,6 +92,7 @@ CREATE TABLE Don_hang (
 	FOREIGN KEY (Dia_chi_giao_hang) REFERENCES Dia_chi(ID)
 );
 
+
 CREATE TABLE Chi_tiet_don_hang (
     Ma_don_hang BIGINT NOT NULL,
     Mau_ma_sp BIGINT NOT NULL,
@@ -101,6 +102,7 @@ CREATE TABLE Chi_tiet_don_hang (
     FOREIGN KEY (Mau_ma_sp) REFERENCES Mau_ma_san_pham(ID)
 );
 
+
 CREATE TABLE Chi_tiet_Gio_hang (
     Sdt CHAR(10) NOT NULL,
     Mau_ma_sp BIGINT NOT NULL,
@@ -109,6 +111,7 @@ CREATE TABLE Chi_tiet_Gio_hang (
     FOREIGN KEY (Sdt) REFERENCES Nguoi_dung_va_Gio_hang(Sdt),
     FOREIGN KEY (Mau_ma_sp) REFERENCES Mau_ma_san_pham(ID)
 );
+
 
 CREATE TABLE Danh_gia (
     Sdt CHAR(10) NOT NULL,
@@ -121,6 +124,7 @@ CREATE TABLE Danh_gia (
     FOREIGN KEY (Sdt) REFERENCES Nguoi_dung_va_Gio_hang(Sdt),
     FOREIGN KEY (Ma_san_pham) REFERENCES San_pham(Ma_san_pham)
 );
+
 GO
 
 -- Thêm các giá trị đặc biệt
@@ -130,3 +134,18 @@ INSERT INTO Nguoi_dung_va_Gio_hang(Sdt, Email, Mat_khau, Username)
 VALUES ('-1', '', 'abcxyz', '')
 INSERT INTO Nguoi_ban_va_Cua_hang(Ma_cua_hang, Ten, Sdt, Dia_chi)
 VALUES (-1, '', -1, -1)
+
+ALTER TABLE Don_hang
+ADD Tong_gia INT NOT NULL DEFAULT 0;
+
+ALTER TABLE Chi_tiet_don_hang
+ADD Da_danh_gia BIT DEFAULT 0;
+UPDATE Chi_tiet_don_hang
+SET Da_danh_gia = 0
+WHERE Da_danh_gia IS NULL;
+
+ALTER TABLE Danh_gia
+ADD Ma_don_hang BIGINT;
+ALTER TABLE Danh_gia
+ADD CONSTRAINT FK_Danh_gia_Don_hang
+FOREIGN KEY (Ma_don_hang) REFERENCES Don_hang(Ma_don_hang);
