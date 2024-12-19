@@ -1,4 +1,4 @@
-import React, { useState} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { AiOutlineShoppingCart } from "react-icons/ai";
 import { BiPackage } from "react-icons/bi";
@@ -9,7 +9,26 @@ const Header = () => {
   const { user, loading } = useAuth(); // Lấy trạng thái loading từ context
   const [profileMenu, setProfileMenu] = useState(false);
   const { logout } = useLogout();
- 
+  const [clickedAvatar, setClickedAvatar] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+      const handleClickOutside = (event) => {
+        // Kiểm tra xem có phải là nhấp vào avatar không
+        if (
+          profileMenuRef.current &&
+          !profileMenuRef.current.contains(event.target) &&
+          !event.target.closest('button')
+        ) {
+          setProfileMenu(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+    
 
   if (loading) {
     return <div>Đang tải...</div>; // Hoặc hiển thị spinner
@@ -38,6 +57,7 @@ const Header = () => {
             <button
               onClick={() => {
                 setProfileMenu(!profileMenu);
+                setClickedAvatar(true);
               }}
               className="focus:outline-none"
             >
@@ -56,7 +76,9 @@ const Header = () => {
 
           {/* Menu profile */}
           {profileMenu && (
-            <div className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden z-50">
+            <div 
+            ref={profileMenuRef}
+            className="absolute right-0 mt-2 w-[150px] bg-white shadow-lg rounded-md overflow-hidden z-50">
               <Link
                 to="/profile"
                 className="block text-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

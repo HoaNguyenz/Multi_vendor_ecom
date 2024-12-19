@@ -17,5 +17,6 @@ sellerRouter.get("/sales-summary", verifyToken, controllers.salesSummary);
 sellerRouter.get("/orders-completed", verifyToken, controllers.getCompletedOrders);
 sellerRouter.get("/product-rank", verifyToken, controllers.getProductRank);
 sellerRouter.get("/shop-rating", verifyToken, controllers.getRatings);
+sellerRouter.get("/out-of-stock", verifyToken, controllers.getOutOfStockProducts);
 
 module.exports = sellerRouter;

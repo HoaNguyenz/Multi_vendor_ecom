@@ -145,9 +145,15 @@ const searchProducts = async (req, res) => {
     size, // có thể là mảng
     inStock,
     category,
+    sort,
   } = req.query;
 
+  const page = parseInt(req.query.page, 10) || 1; // Trang hiện tại
+  const limit = parseInt(req.query.limit, 10) || 20; // Số sản phẩm mỗi trang
+  const offset = (page - 1) * limit;
+
   try {
+    // Câu truy vấn chính
     let query = `
         SELECT sp.*, mms.Mau_sac, mms.Kich_co, mms.So_luong_ton_kho
         FROM San_pham sp
@@ -160,7 +166,6 @@ const searchProducts = async (req, res) => {
       query += ` AND sp.Ten_san_pham COLLATE Latin1_General_CI_AI LIKE N'%${keyword}%'`;
     if (category) query += ` AND sp.Ten_danh_muc = N'${category}'`;
 
-    // Xử lý mảng (nếu `origin` là mảng, chuyển thành chuỗi để dùng trong `IN`)
     if (origin) {
       const origins = Array.isArray(origin) ? origin : [origin];
       query += ` AND sp.Xuat_xu IN (${origins
@@ -198,19 +203,57 @@ const searchProducts = async (req, res) => {
       }
     }
 
-    // Thêm phần phân trang
-    // query += ` ORDER BY sp.Ma_san_pham OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`;
+    let orderByClause = "";
+    switch (sort) {
+      case "priceAsc":
+        orderByClause = "ORDER BY sp.Gia ASC";
+        break;
+      case "priceDesc":
+        orderByClause = "ORDER BY sp.Gia DESC";
+        break;
+      case "latest":
+        orderByClause = "ORDER BY sp.Thoi_gian_tao DESC";
+        break;
+      case "oldest":
+        orderByClause = "ORDER BY sp.Thoi_gian_tao ASC";
+        break;
+      default:
+        orderByClause = "ORDER BY sp.Ma_san_pham"; // Mặc định
+    }
+
+    // Tính tổng số sản phẩm (không phân trang)
+    const countQuery = `SELECT COUNT(*) AS totalCount FROM (${query}) AS subquery`;
+    const countResult = await sql.query(countQuery);
+    const totalCount = countResult.recordset[0].totalCount;
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Thêm phân trang vào câu truy vấn
+    query += ` ${orderByClause} OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`;
 
     // Thực hiện truy vấn
     const products = await sql.query(query);
 
-    if (products.recordset.length === 0) {
+    const uniqueProducts = products.recordset.reduce((acc, product) => {
+      if (!acc.some((item) => item.Ma_san_pham === product.Ma_san_pham)) {
+        acc.push(product);
+      }
+      return acc;
+    }, []);    
+
+    if (uniqueProducts.length === 0) {
       return res.status(404).json({
         message: "Không có sản phẩm nào phù hợp với yêu cầu tìm kiếm.",
       });
     }
 
-    res.json(products.recordset);
+    // Trả về kết quả
+    res.status(200).json({
+      totalPages: Math.ceil(uniqueProducts.length / limit),
+      currentPage: page,
+      totalCount: uniqueProducts.length,
+      products: uniqueProducts.slice(offset, offset + limit), // Phân trang lại sau khi lọc
+    });
+    
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Có lỗi xảy ra khi lấy sản phẩm." });
@@ -340,7 +383,7 @@ const getDetailProduct = async (req, res) => {
 const getBestSellingProducts = async (req, res) => {
   try {
     const result = await sql.query`
-                SELECT TOP 50 * FROM San_pham 
+                SELECT TOP 20 * FROM San_pham 
                 WHERE Ma_cua_hang != -1
                 ORDER BY SL_da_ban DESC
             `;
@@ -412,7 +455,6 @@ const getProductSeller = async (req, res) => {
     }
 
     message.products = products;
-    console.log(message);
     res.status(200).json(message);
   } catch (error) {
     console.error(error);
@@ -628,7 +670,6 @@ const sellerOfProduct = async (req, res) => {
     `;
     
     const seller = result.recordset[0];
-    console.log(result)
     if (!seller) {
       return res.status(404).json({ message: "Người bán không tồn tại." });
     }

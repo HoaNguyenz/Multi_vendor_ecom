@@ -37,6 +37,58 @@ const EditProductPopup = ({ product, onClose }) => {
   const [stockError, setStockError] = useState(null);
 
   useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        const response = await axios.get(`/product-detail/${product.id}`);
+        const productData = response.data;
+        console.log(productData);
+        // Gắn dữ liệu vào state
+        setName(productData.Ten_san_pham);
+        setDescription(productData.Mo_ta);
+        setOrigin(productData.Xuat_xu);
+        setBrand(productData.Thuong_hieu);
+        setPrice(productData.Gia);
+        setCategory(productData.Ten_danh_muc);
+
+        // Xử lý hình ảnh
+        const formattedImages = productData.hinh_anh_san_phams.map((url) => ({
+          file: null,
+          preview: url,
+          img_url: url,
+        }));
+        setImages(formattedImages);
+        // Xử lý thông tin size
+        const sizes = Array.from(
+          new Set(productData.mau_ma_san_phams.map((v) => v.kich_co))
+        );
+        setSize(sizes);
+
+        // Xử lý thông tin màu sắc
+        const colors = Array.from(
+          new Set(productData.mau_ma_san_phams.map((v) => v.mau_sac))
+        ).map((color) => ({
+          name: color,
+          value: color, // Hoặc mã hex màu nếu cần
+        }));
+        setColor(colors);
+
+        // Xử lý tồn kho
+        const stockData = {};
+        productData.mau_ma_san_phams.forEach((mau_ma_san_phams) => {
+          const key = `${mau_ma_san_phams.kich_co}-${mau_ma_san_phams.mau_sac}`;
+          stockData[key] = mau_ma_san_phams.so_luong_ton_kho;
+        });
+        setStock(stockData);
+      } catch (error) {
+        console.error("Error fetching product details:", error);
+        setErrorMessage("Không thể tải thông tin sản phẩm.");
+      }
+    };
+
+    fetchProductDetails();
+  }, [product.id]);
+
+  useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await axios.get("/get-categories");
@@ -47,6 +99,7 @@ const EditProductPopup = ({ product, onClose }) => {
     };
     fetchCategories();
   }, [product]);
+
   useEffect(() => {
     if (categories.length > 0 && product.Ten_danh_muc && !categoryUpdated) {
       const currentCategory = categories.find(
@@ -172,58 +225,6 @@ const EditProductPopup = ({ product, onClose }) => {
     setStock(updatedStock);
   };
 
-  useEffect(() => {
-    const fetchProductDetails = async () => {
-      try {
-        const response = await axios.get(`/product-detail/${product.id}`);
-        const productData = response.data;
-
-        // Gắn dữ liệu vào state
-        setName(productData.Ten_san_pham);
-        setDescription(productData.Mo_ta);
-        setOrigin(productData.Xuat_xu);
-        setBrand(productData.Thuong_hieu);
-        setPrice(productData.Gia);
-        setCategory(productData.Ten_danh_muc);
-
-        // Xử lý hình ảnh
-        const formattedImages = productData.hinh_anh_san_phams.map((url) => ({
-          file: null,
-          preview: url,
-          img_url: url,
-        }));
-        setImages(formattedImages);
-        // Xử lý thông tin size
-        const sizes = Array.from(
-          new Set(productData.mau_ma_san_phams.map((v) => v.kich_co))
-        );
-        setSize(sizes);
-
-        // Xử lý thông tin màu sắc
-        const colors = Array.from(
-          new Set(productData.mau_ma_san_phams.map((v) => v.mau_sac))
-        ).map((color) => ({
-          name: color,
-          value: color, // Hoặc mã hex màu nếu cần
-        }));
-        setColor(colors);
-
-        // Xử lý tồn kho
-        const stockData = {};
-        productData.mau_ma_san_phams.forEach((mau_ma_san_phams) => {
-          const key = `${mau_ma_san_phams.kich_co}-${mau_ma_san_phams.mau_sac}`;
-          stockData[key] = mau_ma_san_phams.so_luong_ton_kho;
-        });
-        setStock(stockData);
-      } catch (error) {
-        console.error("Error fetching product details:", error);
-        setErrorMessage("Không thể tải thông tin sản phẩm.");
-      }
-    };
-
-    fetchProductDetails();
-  }, [product.id]);
-
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
     if (images.length + files.length > 7) {
@@ -306,7 +307,7 @@ const EditProductPopup = ({ product, onClose }) => {
         xuat_xu: origin,
         thuong_hieu: brand,
         mo_ta: description,
-        gia: parseInt(price.replace(/[^0-9]/g, ''), 10),
+        gia: parseInt(String(price).replace(/\./g, '').replace(/[^0-9]/g, ''),10),
         url_thumbnail: uploadedImages[0],
         ten_danh_muc: category.value,
         mau_ma_san_phams: mau_ma_san_phams,
@@ -463,7 +464,7 @@ const EditProductPopup = ({ product, onClose }) => {
               Đơn giá (VNĐ) <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
+              type="text"
               name="price"
               value={price}
               min={0}
@@ -528,13 +529,6 @@ const EditProductPopup = ({ product, onClose }) => {
                     className="w-5 h-5 inline-block rounded-full"
                   ></span>
                   <span>{col.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteColor(index)}
-                    className="text-red-500 text-xs"
-                  >
-                    Xóa
-                  </button>
                 </div>
               ))}
             </div>

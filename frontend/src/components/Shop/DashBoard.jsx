@@ -29,22 +29,37 @@ const Dashboard = () => {
     orders: 0,
   });
 
+  const [outOfStockCount, setOutOfStockCount] = useState(0); // State để lưu trữ số lượng sản phẩm hết hàng
+
+  useEffect(() => {
+    const fetchOutOfStockProducts = async () => {
+      try {
+        const response = await axios.get("/out-of-stock"); // Gọi API lấy số lượng sản phẩm hết hàng
+        setOutOfStockCount(response.data.outOfStockCount); // Cập nhật state với dữ liệu từ API
+      } catch (error) {
+        console.error("Lỗi khi lấy thông tin sản phẩm hết hàng:", error);
+      }
+    };
+
+    fetchOutOfStockProducts();
+  }, []); // Chỉ gọi API khi component được render lần đầu tiên
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Gọi tất cả API trong một lần
-        const [completedOrdersResponse, salesSummaryResponse] = await Promise.all([
-          axios.get("/orders-completed", { params: { timeRange } }),
-          axios.get("/sales-summary", { params: { timeRange } })
-        ]);
-  
+        const [completedOrdersResponse, salesSummaryResponse] =
+          await Promise.all([
+            axios.get("/orders-completed", { params: { timeRange } }),
+            axios.get("/sales-summary", { params: { timeRange } }),
+          ]);
+
         // Xử lý dữ liệu từ API orders-completed
         const orders = completedOrdersResponse.data;
         const formattedData = orders.reduce((acc, order) => {
           const orderTime = new Date(order.Thoi_gian_giao_thuc_te);
           orderTime.setHours(orderTime.getHours() - 7);
           let groupKey;
-  
+
           if (timeRange === "today" || timeRange === "last3Days") {
             const day = orderTime.getDate();
             const month = orderTime.getMonth();
@@ -53,30 +68,29 @@ const Dashboard = () => {
           } else {
             groupKey = orderTime.toISOString().split("T")[0];
           }
-  
+
           if (!acc[groupKey]) {
             acc[groupKey] = { time: groupKey, count: 0, value: 0 };
           }
-  
+
           acc[groupKey].count += 1;
           acc[groupKey].value += order.Tong_gia;
           return acc;
         }, {});
-  
+
         const result = Object.values(formattedData)
           .sort((a, b) => a.time - b.time)
           .map((item) => ({ ...item, value: item.value / 1000000 }));
-  
+
         setChartData(result);
-  
+
         // Xử lý dữ liệu từ API sales-summary
         setCurrentData(salesSummaryResponse.data);
-  
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
       }
     };
-  
+
     fetchData();
   }, [timeRange]); // Chỉ cần timeRange làm dependency cho cả hai API
 
@@ -91,7 +105,7 @@ const Dashboard = () => {
           "Đang giao hàng": 0,
           "Đã giao thành công": 0,
           "Đã hủy": 0,
-          "Sản phẩm hết hàng": 0, // Dữ liệu giả định
+          "Sản phẩm hết hàng": outOfStockCount, // Dữ liệu giả định
         };
 
         // Ánh xạ trạng thái từ backend sang frontend
@@ -117,7 +131,7 @@ const Dashboard = () => {
     };
 
     fetchTaskStatus();
-  }, []);
+  }, [outOfStockCount]);
 
   useEffect(() => {
     const fetchRankingData = async () => {
@@ -142,9 +156,13 @@ const Dashboard = () => {
             <div
               key={index}
               className={`p-4 rounded-lg text-center ${
-                value > 0
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-gray-100 text-gray-600"
+                title === "Sản phẩm hết hàng"
+                  ? value > 0
+                    ? "bg-red-100 text-red-600" // Nếu "Sản phẩm hết hàng" và giá trị > 0, màu đỏ
+                    : "bg-green-100 text-green-600" // Nếu "Sản phẩm hết hàng" và giá trị <= 0, màu xanh lá
+                  : value > 0
+                  ? "bg-blue-100 text-blue-600" // Nếu giá trị > 0 nhưng không phải "Sản phẩm hết hàng", màu xanh
+                  : "bg-gray-100 text-gray-600" // Nếu giá trị <= 0, màu xám
               }`}
             >
               <div className="text-2xl font-bold">{value}</div>
@@ -173,16 +191,23 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <div className="p-4 bg-green-100 text-green-600 rounded-lg text-center">
             <div className="text-xl font-bold">
-              {currentData.totalSales ? currentData.totalSales.toLocaleString("vi-VN") : 0} Đ
+              {currentData.totalSales
+                ? currentData.totalSales.toLocaleString("vi-VN")
+                : 0}{" "}
+              Đ
             </div>
             <div>Tổng doanh số</div>
           </div>
           <div className="p-4 bg-blue-100 text-blue-600 rounded-lg text-center">
-            <div className="text-xl font-bold">{currentData.productsSold ? currentData.productsSold : 0}</div>
+            <div className="text-xl font-bold">
+              {currentData.productsSold ? currentData.productsSold : 0}
+            </div>
             <div>Lượng sản phẩm bán ra</div>
           </div>
           <div className="p-4 bg-purple-100 text-purple-600 rounded-lg text-center">
-            <div className="text-xl font-bold">{currentData.orders ? currentData.orders : 0}</div>
+            <div className="text-xl font-bold">
+              {currentData.orders ? currentData.orders : 0}
+            </div>
             <div>Số đơn hàng đã bán</div>
           </div>
         </div>

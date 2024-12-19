@@ -17,8 +17,6 @@ function runServer() {
     cors({
       origin: "http://localhost:3000", // URL của React app
       credentials: true,
-      methods: ["GET", "POST", "PUT", "DELETE"],
-      allowedHeaders: ["Content-Type", "Authorization"],
     })
   );
 

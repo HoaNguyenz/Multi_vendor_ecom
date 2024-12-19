@@ -3,8 +3,12 @@ import { DataGrid, gridDateComparator } from "@mui/x-data-grid";
 import axios from "../../context/configAxios";
 import { LuPackageSearch, LuPackageX } from "react-icons/lu";
 import { Button } from "@mui/material";
+import { MdRateReview } from "react-icons/md";
+import { BiSolidMessageRoundedX } from "react-icons/bi";
 import DetailsPopup from "./DetailsPopup";
 import CancelOrderPopup from "./CancelOrderPopup";
+import ShopReviewPopup from "../Shop/Popup/ShopReviewPopup";
+import CancelReasonPopup from "../Shop/Popup/CancelReasonPopup";
 
 const OrderDetails = () => {
   const [orders, setOrders] = useState([]);
@@ -13,6 +17,10 @@ const OrderDetails = () => {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [openCancelPopup, setOpenCancelPopup] = useState(false);
   const [selectedCancelOrderId, setSelectedCancelOrderId] = useState(null);
+  const [openReviewPopup, setOpenReviewPopup] = useState(false);
+  const [selectedOrderForReview, setSelectedOrderForReview] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [openCancelReasonPopup, setOpenCancelReasonPopup] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -94,21 +102,38 @@ const OrderDetails = () => {
       ),
     },
     {
-      field: "cancel",
-      headerName: "Hủy",
+      field: "status",
+      headerName:
+        statusFilter === "Đã giao thành công" || statusFilter === "Đã hủy"
+          ? "Chi tiết"
+          : "Cập nhật",
       minWidth: 50,
       flex: 0.4,
       headerAlign: "center",
-      sortable: false,
       renderCell: (params) => {
-        // Kiểm tra trạng thái đơn hàng
-        const isCancellable =
-          params.row.Trang_thai === "Chờ xác nhận"
-        return isCancellable ? (
-          <Button onClick={() => handleCancelClick(params.row.Ma_don_hang)}>
-            <LuPackageX size={20} color="red" />
-          </Button>
-        ) : null; // Nếu trạng thái là "Đã hủy" hoặc "Đã giao thành công", không hiển thị biểu tượng
+        const trangThai = params.row.Trang_thai;
+        if (statusFilter === "Đã giao thành công") {
+          return (
+            <Button onClick={() => handleReviewClick(params.row.Ma_don_hang)}>
+              <MdRateReview size={20} color="black"></MdRateReview>
+            </Button>
+          );
+        } else if (trangThai === "Chờ xác nhận") {
+          return (
+            <Button onClick={() => handleCancelClick(params.row.Ma_don_hang)}>
+              <LuPackageX size={20} color="red" />
+            </Button>
+          );
+        } else if (statusFilter === "Đã hủy") {
+          return (
+            <Button onClick={() => handleCancelReasonClick(params.row.Ma_don_hang)}>
+              <BiSolidMessageRoundedX
+                size={20}
+                color="red"
+              ></BiSolidMessageRoundedX>
+            </Button>
+          );
+        }
       },
     },
   ];
@@ -129,6 +154,18 @@ const OrderDetails = () => {
 
   const handleCloseCancelPopup = () => {
     setOpenCancelPopup(false);
+  };
+
+  const handleReviewClick = (maDonHang) => {
+    setSelectedOrderForReview(maDonHang);
+    setOpenReviewPopup(true);
+  };
+
+  const handleCancelReasonClick = (maDonHang) => {
+    const order = orders.find((order) => order.Ma_don_hang === maDonHang);
+    console.log(order);
+    setCancelReason(order?.Ly_do_huy || ""); // Lấy lý do hủy từ đơn hàng
+    setOpenCancelReasonPopup(true); // Mở popup
   };
 
   return (
@@ -183,6 +220,18 @@ const OrderDetails = () => {
         open={openCancelPopup}
         onClose={handleCloseCancelPopup}
         maDonHang={selectedCancelOrderId}
+      />
+
+      <ShopReviewPopup
+        open={openReviewPopup}
+        onClose={() => setOpenReviewPopup(false)}
+        maDonHang={selectedOrderForReview}
+      />
+
+      <CancelReasonPopup
+        open={openCancelReasonPopup}
+        onClose={() => setOpenCancelReasonPopup(false)}
+        reason={cancelReason}
       />
     </div>
   );

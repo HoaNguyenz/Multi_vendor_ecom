@@ -37,7 +37,7 @@ const ShopInfo = ({ isOwner }) => {
       .then((res) => {
         setData((prevData) => ({
           ...prevData,
-          ratings: res.data.averageRating || "0/5",
+          ratings: res.data.averageRating || "0",
           totalRatings: res.data.totalRatings || 0,
         }));
       })
@@ -84,7 +84,7 @@ const ShopInfo = ({ isOwner }) => {
           </div>
           <div>
             <h5 className="font-bold">Shop Ratings</h5>
-            <p className="text-gray-700">{data.ratings? data.ratings : "0"}/5 ({data.totalRatings?data.totalRatings : 0} lượt đánh giá)</p>
+            <p className="text-gray-700">{data.ratings}/5 ({data.totalRatings} lượt đánh giá)</p>
           </div>
           <div>
             <h5 className="font-bold">Mô tả</h5>
@@ -102,7 +102,7 @@ const ShopInfo = ({ isOwner }) => {
       </div>
 
       {/* Product List */}
-      <div className="w-[70%] bg-gray-100 ml-5 p-5 rounded-lg shadow-md">
+      <div className="w-[70%] bg-white ml-5 p-5 rounded-lg shadow-md">
         <h2 className="text-lg font-bold mb-4">
           Các sản phẩm hiện có trong cửa hàng
         </h2>

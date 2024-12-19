@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "../../context/configAxios";
 import { FaFilter } from "react-icons/fa6";
+import Slider from "rc-slider";
+import "rc-slider/assets/index.css";
 
 const FilterSidebar = ({ filters, setFilters }) => {
   const [localFilters, setLocalFilters] = useState(filters); // Bản sao cục bộ của filters
@@ -74,15 +76,24 @@ const FilterSidebar = ({ filters, setFilters }) => {
     });
   };
 
+  const handlePriceSliderChange = (values) => {
+    setLocalFilters((prev) => ({
+      ...prev,
+      priceMin: values[0] * 1000, // Chuyển lại giá trị thành đơn vị đồng
+      priceMax: values[1] * 1000,
+    }));
+  };
+
   return (
     <div className="w-[15vw] p-4 border-r border-gray-200 bg-white sticky top-0 h-[calc(100vh-4rem)] overflow-y-auto no-scrollbar">
       {/* Xuất xứ */}
       <div className="mb-4">
         <div className="flex justify-between items-center font-medium mb-2 space-x-2">
           <span className="text-blue-400">Xuất xứ</span>
-          <button 
+          <button
             onClick={applyFilters}
-            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out"
+          >
             <FaFilter className="text-blue-400" />
           </button>
         </div>
@@ -96,7 +107,9 @@ const FilterSidebar = ({ filters, setFilters }) => {
               onChange={handleFilterChange}
               className="mr-2 w-4 h-4 border-gray-300 rounded focus:ring-0 group-hover:border-blue-500 group-hover:ring-2 group-hover:ring-blue-500 transition duration-200"
             />
-            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">{origin}</span>
+            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">
+              {origin}
+            </span>
           </div>
         ))}
       </div>
@@ -105,9 +118,10 @@ const FilterSidebar = ({ filters, setFilters }) => {
       <div className="mb-4">
         <div className="flex justify-between items-center font-medium mb-2 space-x-2">
           <span className="text-blue-400">Thương hiệu</span>
-          <button 
+          <button
             onClick={applyFilters}
-            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out"
+          >
             <FaFilter className="text-blue-400" />
           </button>
         </div>
@@ -121,7 +135,9 @@ const FilterSidebar = ({ filters, setFilters }) => {
               onChange={handleFilterChange}
               className="mr-2 w-4 h-4 border-gray-300 rounded focus:ring-0 group-hover:border-blue-500 group-hover:ring-2 group-hover:ring-blue-500 transition duration-200"
             />
-            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">{brand}</span>
+            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">
+              {brand}
+            </span>
           </div>
         ))}
       </div>
@@ -130,9 +146,10 @@ const FilterSidebar = ({ filters, setFilters }) => {
       <div className="mb-4">
         <div className="flex justify-between items-center font-medium mb-2 space-x-2">
           <span className="text-blue-400">Màu sắc</span>
-          <button 
+          <button
             onClick={applyFilters}
-            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out"
+          >
             <FaFilter className="text-blue-400" />
           </button>
         </div>
@@ -146,7 +163,9 @@ const FilterSidebar = ({ filters, setFilters }) => {
               onChange={handleFilterChange}
               className="mr-2 w-4 h-4 border-gray-300 rounded focus:ring-0 group-hover:border-blue-500 group-hover:ring-2 group-hover:ring-blue-500 transition duration-200"
             />
-            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">{color}</span>
+            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">
+              {color}
+            </span>
           </div>
         ))}
       </div>
@@ -155,9 +174,10 @@ const FilterSidebar = ({ filters, setFilters }) => {
       <div className="mb-4">
         <div className="flex justify-between items-center font-medium mb-2 space-x-2">
           <span className="text-blue-400">Kích cỡ</span>
-          <button 
+          <button
             onClick={applyFilters}
-            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out"
+          >
             <FaFilter className="text-blue-400" />
           </button>
         </div>
@@ -171,13 +191,15 @@ const FilterSidebar = ({ filters, setFilters }) => {
               onChange={handleFilterChange}
               className="mr-2 w-4 h-4 border-gray-300 rounded focus:ring-0 group-hover:border-blue-500 group-hover:ring-2 group-hover:ring-blue-500 transition duration-200"
             />
-            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">{size}</span>
+            <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">
+              {size}
+            </span>
           </div>
         ))}
       </div>
       <hr className="border-t border-gray-300 my-4" />
       {/* Khoảng giá */}
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <div className="flex justify-between items-center font-medium mb-2 space-x-2">
           <span className="text-blue-400">Khoảng giá</span>
           <button 
@@ -204,15 +226,48 @@ const FilterSidebar = ({ filters, setFilters }) => {
             className="w-1/2 border border-gray-300 p-2 rounded"
           />
         </div>
+      </div> */}
+      <div className="mb-4">
+        <div className="flex justify-between items-center font-medium mb-2 space-x-2">
+          <span className="text-blue-400">Khoảng giá</span>
+          <button
+            onClick={applyFilters}
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out"
+          >
+            <FaFilter className="text-blue-400" />
+          </button>
+        </div>
+        <div className="px-4">
+          <Slider
+            range
+            min={0}
+            max={10000} // Giá trị tối đa: 1,000 tương ứng 1,000,000 đồng
+            step={10} // Bước tăng giảm: 10 tương ứng 10,000 đồng
+            value={[
+              (localFilters.priceMin || 0) / 1000,
+              (localFilters.priceMax || 10000000) / 1000,
+            ]}
+            onChange={handlePriceSliderChange}
+            className="mt-4"
+          />
+          <div className="flex justify-between mt-2 text-gray-700">
+            <span>{((localFilters.priceMin || 0) / 1000).toLocaleString()}</span>
+            <span>{((localFilters.priceMax || 10000000) / 1000).toLocaleString()}</span>
+          </div>
+          <div className="text-sm text-gray-500 text-right mt-1">
+            *Ngàn Đồng
+          </div>
+        </div>
       </div>
       <hr className="border-t border-gray-300 my-4" />
       {/* Tình trạng hàng */}
       <div className="mb-4">
         <div className="flex justify-between items-center font-medium mb-2 space-x-2">
           <span className="text-blue-400">Tình trạng hàng</span>
-          <button 
+          <button
             onClick={applyFilters}
-            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out">
+            className="p-2 rounded-lg border-gray-100 hover:bg-blue-100 shadow-md transition-all duration-200 ease-in-out"
+          >
             <FaFilter className="text-blue-400" />
           </button>
         </div>
@@ -225,7 +280,9 @@ const FilterSidebar = ({ filters, setFilters }) => {
             onChange={() => handleInStockChange(true)}
             className="mr-2 w-4 h-4"
           />
-          <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">Còn hàng</span>
+          <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">
+            Còn hàng
+          </span>
         </div>
         <div className="flex items-center mb-1 group">
           <input
@@ -236,17 +293,17 @@ const FilterSidebar = ({ filters, setFilters }) => {
             onChange={() => handleInStockChange(false)}
             className="mr-2 w-4 h-4"
           />
-          <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">Hết hàng</span>
+          <span className="text-gray-700 group-hover:text-blue-500 transition duration-200">
+            Hết hàng
+          </span>
         </div>
       </div>
-
       <button
         onClick={resetFilters}
         className="w-full bg-gray-500 text-white p-2 rounded mb-2"
       >
         Xóa bộ lọc
       </button>
-
       <button
         onClick={applyFilters}
         className="w-full bg-blue-500 text-white p-2 rounded"

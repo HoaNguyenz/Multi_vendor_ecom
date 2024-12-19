@@ -12,6 +12,8 @@ const Header = () => {
   const { user, loading } = useAuth();
   const [profileMenu, setProfileMenu] = useState(false);
   const [categoryMenu, setCategoryMenu] = useState(false);
+  const [clickedAvatar, setClickedAvatar] = useState(false);
+  const [clickedCategory, setClickedCategory] = useState(false);
   const profileMenuRef = useRef(null);
   const categoryMenuRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -20,7 +22,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useLogout();
-  
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -39,12 +41,13 @@ const Header = () => {
     setCategory(params.get("category") || "");
   }, [location.search]);
 
-  //handle click outside profile
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Kiểm tra xem có phải là nhấp vào avatar không
       if (
         profileMenuRef.current &&
-        !profileMenuRef.current.contains(event.target)
+        !profileMenuRef.current.contains(event.target) &&
+        !event.target.closest('button')
       ) {
         setProfileMenu(false);
       }
@@ -54,22 +57,32 @@ const Header = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  
 
   //handle click outside category
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Kiểm tra nếu không phải nhấp vào category menu hoặc nút category
       if (
         categoryMenuRef.current &&
-        !categoryMenuRef.current.contains(event.target)
+        !categoryMenuRef.current.contains(event.target) &&
+        !event.target.closest('button') // Kiểm tra nếu nhấp vào nút category thì không đóng
       ) {
         setCategoryMenu(false);
       }
     };
+  
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  useEffect(() => {
+    if (!categoryMenu) {
+      setClickedCategory(false);  // Reset trạng thái khi menu đóng
+    }
+  }, [categoryMenu]);
 
   const handleSearch = () => {
     navigate(`/search?keyword=${searchTerm}&category=${category}`);
@@ -99,7 +112,10 @@ const Header = () => {
 
       <div className="relative hidden md:block">
         <button
-          onClick={() => setCategoryMenu(!categoryMenu)}
+          onClick={() => {
+            setCategoryMenu(!categoryMenu);
+            setClickedCategory(true); // Đánh dấu là đã nhấp vào nút category
+          }}
           className="h-[6vh] w-[20vw] flex items-center justify-between px-4 bg-white text-lg font-[400] select-none rounded-md"
         >
           <div className="flex items-center">
@@ -183,7 +199,10 @@ const Header = () => {
         <div className="relative">
           {user ? (
             <button
-              onClick={() => setProfileMenu(!profileMenu)}
+              onClick={() => {
+                setProfileMenu(!profileMenu);
+                setClickedAvatar(true);
+              }}
               className="focus:outline-none"
             >
               {user.url_avatar ? (

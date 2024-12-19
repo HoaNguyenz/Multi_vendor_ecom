@@ -493,6 +493,35 @@ const getRatings = async (req, res) => {
   }
 };
 
+const getOutOfStockProducts = async (req, res) => {
+  const Sdt = req.user.id;
+
+  try {
+    let str = `
+      SELECT 
+        COUNT(DISTINCT sp.Ma_san_pham) AS out_of_stock_count
+      FROM Mau_ma_san_pham mms
+      JOIN San_pham sp ON mms.Ma_san_pham = sp.Ma_san_pham
+      WHERE mms.So_luong_ton_kho = 0
+      AND sp.Ma_cua_hang = (
+        SELECT Ma_cua_hang 
+        FROM Nguoi_ban_va_Cua_hang 
+        WHERE Sdt = @Sdt
+      )
+    `;
+    const request = new sql.Request();
+    request.input("Sdt", sql.Char, Sdt);
+    
+    const result = await request.query(str);
+    res.status(200).json({ outOfStockCount: result.recordset[0].out_of_stock_count });
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin sản phẩm hết hàng:", error);
+    res.status(500).json({
+      message: "Lỗi khi lấy thông tin sản phẩm hết hàng.",
+      error: error.message,
+    });
+  }
+};
 
 
 module.exports = {
@@ -506,7 +535,8 @@ module.exports = {
   salesSummary,
   getCompletedOrders,
   getProductRank,
-  getRatings
+  getRatings,
+  getOutOfStockProducts
 };
 
 // CREATE DATABASE eCommerce;

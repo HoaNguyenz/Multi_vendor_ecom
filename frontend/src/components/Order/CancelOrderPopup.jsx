@@ -12,7 +12,8 @@ const CancelOrderPopup = ({ open, onClose, maDonHang }) => {
     try {
       await axios.delete('/order', { data: { ma_don_hang: maDonHang, ly_do_huy: reason } });
       alert('Đơn hàng đã được hủy thành công');
-      onClose(); // Đóng popup
+      onClose();
+      window.location.reload();
     } catch (error) {
       console.error("Lỗi khi hủy đơn hàng:", error);
       alert('Hủy đơn hàng thất bại');

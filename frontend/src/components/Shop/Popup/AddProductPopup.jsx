@@ -250,7 +250,7 @@ const AddProductPopup = ({ onClose }) => {
       xuat_xu: origin,
       thuong_hieu: brand,
       mo_ta: description,
-      gia: parseInt(price.replace(/[^0-9]/g, ''), 10),
+      gia: parseInt(String(price).replace(/\./g, '').replace(/[^0-9]/g, ''),10),
       url_thumbnail: uploadedImages[0], // Use the first image as the thumbnail
       ten_danh_muc: category.value,
       mau_ma_san_phams: mau_ma_san_phams,
@@ -415,7 +415,7 @@ const AddProductPopup = ({ onClose }) => {
               Đơn giá (VNĐ) <span className="text-red-500">*</span>
             </label>
             <input
-              type="number"
+              type="text"
               name="price"
               value={price}
               min={0}

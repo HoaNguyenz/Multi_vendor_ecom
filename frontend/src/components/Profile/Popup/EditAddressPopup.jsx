@@ -33,7 +33,7 @@ const EditAddressPopup = ({ isOpen, onClose, address, onEdit }) => {
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-xl font-bold mb-4">Thêm địa chỉ mới</h2>
+        <h2 className="text-xl font-bold mb-4">Chỉnh sửa địa chỉ</h2>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm text-gray-500">Số nhà:</label>
