@@ -5,7 +5,11 @@ const { verifyToken } = require("../middleware");
 
 const userRouter = express.Router();
 
-userRouter.get("/get-user-info/:username", verifyToken, controllers.getUserInfo);
+userRouter.get(
+  "/get-user-info/:username",
+  verifyToken,
+  controllers.getUserInfo
+);
 userRouter.put("/update-user", verifyToken, controllers.updateUser);
 
 userRouter.post("/cart", verifyToken, controllers.addToCart);
@@ -18,7 +22,12 @@ userRouter.delete("/order", verifyToken, controllers.cancelOrder);
 userRouter.get("/order", verifyToken, controllers.getOrder);
 
 // Thêm địa chỉ giao hàng cho người dùng
-userRouter.post("/address", verifyToken, validations.addAddress, controllers.addAddress);
+userRouter.post(
+  "/address",
+  verifyToken,
+  validations.addAddress,
+  controllers.addAddress
+);
 userRouter.get("/address", verifyToken, controllers.getAddress);
 userRouter.put(
   "/address/:id",
@@ -30,11 +39,19 @@ userRouter.delete("/address/:id", verifyToken, controllers.deleteAddress);
 
 userRouter.post("/review", verifyToken, controllers.addReview);
 userRouter.get("/review/:maSanPham", controllers.getReview);
-userRouter.get("/review/:maSanPham/:maDonHang", verifyToken, controllers.getMyReview);
+userRouter.get(
+  "/review/:maSanPham/:maDonHang",
+  verifyToken,
+  controllers.getMyReview
+);
 
-userRouter.get('/order/details/:maDonHang', verifyToken, controllers.productInOrder)
-userRouter.get('/shop/:ma_cua_hang', controllers.getSellerInfoByStoreId)
-userRouter.get('/ratings/:ma_cua_hang', controllers.getRatingsByStoreId)
-userRouter.get('/products/:ma_cua_hang', controllers.getProductsByStoreId);
+userRouter.get(
+  "/order/details/:maDonHang",
+  verifyToken,
+  controllers.productInOrder
+);
+userRouter.get("/shop/:ma_cua_hang", controllers.getSellerInfoByStoreId);
+userRouter.get("/ratings/:ma_cua_hang", controllers.getRatingsByStoreId);
+userRouter.get("/products/:ma_cua_hang", controllers.getProductsByStoreId);
 
 module.exports = userRouter;
