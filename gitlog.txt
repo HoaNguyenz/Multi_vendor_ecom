@@ -1,56 +1,64 @@
-dd1d4c7 - hoa, 15 hours ago : fix delete route
-86c6232 - hoa, 16 hours ago : hook qua nhieu thu...
-d3ba05c - hoa, 2 days ago : hook seller order, get reviews, ...
-80193d3 - hoa, 4 days ago : hook orderdetail, addreviews
-4966380 - hoa, 5 days ago : Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
-3cf5a5c - hoa, 5 days ago : hook cart, checkout, orderdetails
-553a0a8 - VietAnh1803, 5 days ago : add/hook customer reviews
-20cef37 - hoa, 6 days ago : fix productPage and navigate to ProductPage from productCard
-1bf3745 - hoa, 6 days ago : Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
-ba424a0 - hoa, 6 days ago : hook editcart, deleteFromCart
-8bedc27 - VietAnh1803, 6 days ago : product details
-b72602d - hoa, 6 days ago : hook addtocart and getcart
-7151ce4 - hoa, 6 days ago : product details page
-6296da9 - hoa, 6 days ago : edit address
-2d92aee - hoa, 6 days ago : Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
-196aa59 - hoa, 6 days ago : ''
-6d6a5a0 - hoa, 6 days ago : fix authenticate bug
-d70fb71 - Thanhdat0412, 7 days ago : Update product review API after validation feature
-3b4094e - hoa, 7 days ago : Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
-d82e702 - hoa, 7 days ago : add address
-de2b03d - VietAnh1803, 7 days ago : Lưu các thay đổi trong CartPage.js
-caf930b - VietAnh1803, 7 days ago : update cart and checkout page
-41766a6 - rgf, 7 days ago : update order
-bd51a12 - rgf, 7 days ago : update order
-790c9f5 - rgf, 7 days ago : update for cart and order
-ddd870e - hoa, 7 days ago : Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
-d38e24c - hoa, 7 days ago : ''
-3f6c2c6 - rgf, 7 days ago : add/get/update/delete address
-4ea9587 - hoa, 8 days ago : Merge remote-tracking branch 'origin/bao'
-aab660b - hoa, 8 days ago : ''
-ba3dea6 - hoa, 8 days ago : Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
-563a673 - hoa, 8 days ago : add dashboard n style the filter
-0b73ed7 - VietAnh1803, 8 days ago : update cart
-98e20eb - rgf, 8 days ago : refactoring
-bc5e78e - hoa, 10 days ago : commit thieu
-c8eabed - hoa, 10 days ago : update product, seller info
-c7b88d8 - hoa, 12 days ago : upload images to cloudinary
-ca97677 - hoa, 2 weeks ago : "user info, shop info, filter and search product"
-a5010d6 - hoa, 3 weeks ago : split route in backend and hook update userprofile
-f7c8ca2 - hoa, 3 weeks ago : add product hook
-e7c17c4 - hoa, 3 weeks ago : protectRoute
-82b1d0d - hoa, 3 weeks ago : Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
-92acf7f - hoa, 3 weeks ago : authenticate login
-1ff2d90 - VietAnh1803, 4 weeks ago : Update App.js, Header.jsx, and HomePage.jsx with cart functionality and UI improvements
-d63d25a - hoa, 4 weeks ago : fix path
-af8ac17 - Thanhdat0412, 4 weeks ago : Update server.js - Logout (clear session), Search-product, View-product-info
-0b7ebee - hoa, 4 weeks ago : add category to header
-b8f1d43 - hoa, 5 weeks ago : add product fe
-2fd2fca - HoaNguyenz, 6 weeks ago : hook signin login fe with be
-d381e6e - HoaNguyenz, 6 weeks ago : add product update
-ad7a64a - HoaNguyenz, 6 weeks ago : Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
-f66566a - HoaNguyenz, 6 weeks ago : Products page update
-2a0a854 - Thanhdat0412, 6 weeks ago : Update server.js
-b1f5c8c - HoaNguyenz, 6 weeks ago : add tel and backend folder
-3151227 - HoaNguyenz, 6 weeks ago : add homepage and sellerpage navigate
-8972047 - HoaNguyenz, 6 weeks ago : first commit
+b3cda62 hoa Thu Dec 19 23:00:32 2024 +0700 ''''
+53c4f91 hoa Thu Dec 19 22:39:27 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+9c73a67 hoa Thu Dec 19 22:35:30 2024 +0700 add navigate from pages to homepage
+e34c7de rgf Thu Dec 19 20:24:55 2024 +0700 fix bug update profile
+b4eb97c hoa Thu Dec 19 19:23:03 2024 +0700 database update
+989576b hoa Thu Dec 19 19:11:30 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+25f5c25 hoa Thu Dec 19 19:11:06 2024 +0700 fix bug
+835dc79 VietAnh1803 Thu Dec 19 15:17:38 2024 +0700 Add gitlog.txt
+dd1d4c7 hoa Thu Dec 19 00:17:59 2024 +0700 fix delete route
+86c6232 hoa Wed Dec 18 23:09:50 2024 +0700 hook qua nhieu thu...
+d3ba05c hoa Wed Dec 18 00:48:00 2024 +0700 hook seller order, get reviews, ...
+80193d3 hoa Mon Dec 16 00:06:29 2024 +0700 hook orderdetail, addreviews
+4966380 hoa Sun Dec 15 00:37:18 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+3cf5a5c hoa Sun Dec 15 00:37:04 2024 +0700 hook cart, checkout, orderdetails
+553a0a8 VietAnh1803 Sat Dec 14 20:12:58 2024 +0700 add/hook customer reviews
+20cef37 hoa Sat Dec 14 00:28:31 2024 +0700 fix productPage and navigate to ProductPage from productCard
+1bf3745 hoa Fri Dec 13 23:52:56 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+ba424a0 hoa Fri Dec 13 23:52:48 2024 +0700 hook editcart, deleteFromCart
+8bedc27 VietAnh1803 Fri Dec 13 20:39:49 2024 +0700 product details
+b72602d hoa Fri Dec 13 19:04:08 2024 +0700 hook addtocart and getcart
+7151ce4 hoa Fri Dec 13 17:55:58 2024 +0700 product details page
+6296da9 hoa Fri Dec 13 13:38:40 2024 +0700 edit address
+2d92aee hoa Fri Dec 13 13:00:31 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+196aa59 hoa Fri Dec 13 13:00:13 2024 +0700 ''
+6d6a5a0 hoa Fri Dec 13 13:00:03 2024 +0700 fix authenticate bug
+d70fb71 Thanhdat0412 Fri Dec 13 00:31:04 2024 +0700 Update product review API after validation feature
+3b4094e hoa Thu Dec 12 18:08:33 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+d82e702 hoa Thu Dec 12 18:08:15 2024 +0700 add address
+de2b03d VietAnh1803 Thu Dec 12 15:53:59 2024 +0700 Lưu các thay đổi trong CartPage.js
+caf930b VietAnh1803 Thu Dec 12 15:47:26 2024 +0700 update cart and checkout page
+41766a6 rgf Thu Dec 12 15:29:13 2024 +0700 update order
+bd51a12 rgf Thu Dec 12 15:29:13 2024 +0700 update order
+790c9f5 rgf Thu Dec 12 11:41:56 2024 +0700 update for cart and order
+ddd870e hoa Thu Dec 12 10:50:28 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+d38e24c hoa Thu Dec 12 10:49:19 2024 +0700 ''
+3f6c2c6 rgf Thu Dec 12 06:53:54 2024 +0700 add/get/update/delete address
+4ea9587 hoa Thu Dec 12 01:26:15 2024 +0700 Merge remote-tracking branch 'origin/bao'
+aab660b hoa Thu Dec 12 01:19:57 2024 +0700 ''
+ba3dea6 hoa Thu Dec 12 00:53:26 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+563a673 hoa Thu Dec 12 00:19:32 2024 +0700 add dashboard n style the filter
+0b73ed7 VietAnh1803 Wed Dec 11 23:12:34 2024 +0700 update cart
+98e20eb rgf Wed Dec 11 07:30:48 2024 +0700 refactoring
+bc5e78e hoa Mon Dec 9 23:36:52 2024 +0700 commit thieu
+c8eabed hoa Mon Dec 9 23:35:48 2024 +0700 update product, seller info
+c7b88d8 hoa Sat Dec 7 21:25:59 2024 +0700 upload images to cloudinary
+ca97677 hoa Mon Dec 2 16:32:33 2024 +0700 "user info, shop info, filter and search product"
+a5010d6 hoa Fri Nov 29 23:35:34 2024 +0700 split route in backend and hook update userprofile
+f7c8ca2 hoa Fri Nov 29 11:24:15 2024 +0700 add product hook
+e7c17c4 hoa Wed Nov 27 13:54:26 2024 +0700 protectRoute
+82b1d0d hoa Tue Nov 26 23:29:47 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+92acf7f hoa Tue Nov 26 23:25:51 2024 +0700 authenticate login
+1ff2d90 VietAnh1803 Sun Nov 24 22:23:51 2024 +0700 Update App.js, Header.jsx, and HomePage.jsx with cart functionality and UI improvements
+d63d25a hoa Wed Nov 20 23:08:21 2024 +0700 fix path
+af8ac17 Thanhdat0412 Tue Nov 19 23:14:04 2024 +0700 Update server.js - Logout (clear session), Search-product, View-product-info
+0b7ebee hoa Tue Nov 19 21:57:13 2024 +0700 add category to header
+b8f1d43 hoa Sun Nov 17 16:19:14 2024 +0700 add product fe
+2fd2fca HoaNguyenz Wed Nov 6 14:03:33 2024 +0700 hook signin login fe with be
+d381e6e HoaNguyenz Tue Nov 5 23:56:38 2024 +0700 add product update
+ad7a64a HoaNguyenz Tue Nov 5 23:49:54 2024 +0700 Merge branch 'master' of https://github.com/HoaNguyenz/Multi_vendor_ecom
+f66566a HoaNguyenz Tue Nov 5 23:41:44 2024 +0700 Products page update
+2a0a854 Thanhdat0412 Tue Nov 5 22:10:41 2024 +0700 Update server.js
+b1f5c8c HoaNguyenz Tue Nov 5 10:33:08 2024 +0700 add tel and backend folder
+3151227 HoaNguyenz Mon Nov 4 23:40:57 2024 +0700 add homepage and sellerpage navigate
+8972047 HoaNguyenz Mon Nov 4 22:46:57 2024 +0700 first commit
