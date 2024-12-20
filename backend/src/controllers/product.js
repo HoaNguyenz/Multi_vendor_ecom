@@ -154,12 +154,18 @@ const searchProducts = async (req, res) => {
 
   try {
     // Câu truy vấn chính
+    // let query = `
+    //     SELECT sp.*, mms.Mau_sac, mms.Kich_co, mms.So_luong_ton_kho
+    //     FROM San_pham sp
+    //     LEFT JOIN Mau_ma_san_pham mms ON sp.Ma_san_pham = mms.Ma_san_pham
+    //     WHERE 1 = 1 AND Ma_cua_hang != -1
+    //   `;
+
     let query = `
-        SELECT sp.*, mms.Mau_sac, mms.Kich_co, mms.So_luong_ton_kho
-        FROM San_pham sp
-        LEFT JOIN Mau_ma_san_pham mms ON sp.Ma_san_pham = mms.Ma_san_pham
-        WHERE 1 = 1 AND Ma_cua_hang != -1
-      `;
+    SELECT *
+    FROM San_pham sp
+    WHERE 1 = 1 AND Ma_cua_hang != -1
+  `;
 
     // Thêm các điều kiện lọc
     if (keyword)
@@ -231,6 +237,9 @@ const searchProducts = async (req, res) => {
     query += ` ${orderByClause} OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`;
 
     // Thực hiện truy vấn
+    // console.log(1);
+    // console.log(query);
+    // console.log(2);
     const products = await sql.query(query);
 
     const uniqueProducts = products.recordset.reduce((acc, product) => {
@@ -238,7 +247,7 @@ const searchProducts = async (req, res) => {
         acc.push(product);
       }
       return acc;
-    }, []);    
+    }, []);
 
     if (uniqueProducts.length === 0) {
       return res.status(404).json({
@@ -253,7 +262,6 @@ const searchProducts = async (req, res) => {
       totalCount: uniqueProducts.length,
       products: uniqueProducts.slice(offset, offset + limit), // Phân trang lại sau khi lọc
     });
-    
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ message: "Có lỗi xảy ra khi lấy sản phẩm." });
@@ -523,7 +531,6 @@ const updateProduct = async (req, res) => {
       }
     }
 
-
     // Cập nhật hình ảnh
     await sql.query`
         DELETE FROM Hinh_anh_san_pham
@@ -548,25 +555,25 @@ const deleteProduct = async (req, res) => {
   const productId = req.params.id;
 
   try {
-    // Bước 1: Tìm các đơn hàng liên quan đến sản phẩm
-    const relatedOrders = await sql.query`
-      SELECT DISTINCT ctdh.Ma_don_hang
-      FROM Chi_tiet_don_hang ctdh
-      JOIN Mau_ma_san_pham msp ON ctdh.Mau_ma_sp = msp.ID
-      WHERE msp.Ma_san_pham = ${productId}
-    `;
+    // // Bước 1: Tìm các đơn hàng liên quan đến sản phẩm
+    // const relatedOrders = await sql.query`
+    //   SELECT DISTINCT ctdh.Ma_don_hang
+    //   FROM Chi_tiet_don_hang ctdh
+    //   JOIN Mau_ma_san_pham msp ON ctdh.Mau_ma_sp = msp.ID
+    //   WHERE msp.Ma_san_pham = ${productId}
+    // `;
 
-    // Lấy danh sách các Ma_don_hang
-    const orderIds = relatedOrders.recordset.map(order => order.Ma_don_hang);
+    // // Lấy danh sách các Ma_don_hang
+    // const orderIds = relatedOrders.recordset.map(order => order.Ma_don_hang);
 
-    // Bước 2: Cập nhật Ma_cua_hang của các đơn hàng liên quan
-    if (orderIds.length > 0) {
-      await sql.query`
-        UPDATE Don_hang
-        SET Ma_cua_hang = -1
-        WHERE Ma_don_hang IN (${orderIds})
-      `;
-    }
+    // // Bước 2: Cập nhật Ma_cua_hang của các đơn hàng liên quan
+    // if (orderIds.length > 0) {
+    //   await sql.query`
+    //     UPDATE Don_hang
+    //     SET Ma_cua_hang = -1
+    //     WHERE Ma_don_hang IN (${orderIds})
+    //   `;
+    // }
 
     // Bước 3: Xóa sản phẩm bằng cách set Ma_cua_hang = -1 trong San_pham
     await sql.query`
@@ -581,7 +588,6 @@ const deleteProduct = async (req, res) => {
     res.status(500).json({ message: "Xóa sản phẩm không thành công." });
   }
 };
-
 
 const getProductsByCategory = async (req, res) => {
   const { category } = req.query;
@@ -668,12 +674,12 @@ const sellerOfProduct = async (req, res) => {
       SELECT *
       FROM Nguoi_ban_va_Cua_hang WHERE Ma_cua_hang = ${ma_cua_hang}
     `;
-    
+
     const seller = result.recordset[0];
     if (!seller) {
       return res.status(404).json({ message: "Người bán không tồn tại." });
     }
-    
+
     res.status(200).json(seller);
   } catch (error) {
     console.error(error);
@@ -698,5 +704,5 @@ module.exports = {
   deleteProduct,
   getProductsByCategory,
   searchProductsBySeller,
-  sellerOfProduct
+  sellerOfProduct,
 };

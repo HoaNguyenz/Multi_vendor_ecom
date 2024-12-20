@@ -131,9 +131,9 @@ const EditProductPopup = ({ product, onClose }) => {
             const updatedCategories = [...categories, newCategory];
             setCategories(updatedCategories);
             setCategory({ value: newCategory, label: newCategory });
-            setCategoryUpdated(true); 
+            setCategoryUpdated(true);
             setNewCategory("");
-            setIsAddingNewCategory(false); 
+            setIsAddingNewCategory(false);
           }
         } catch (error) {
           setErrorMessage("Có lỗi khi thêm danh mục mới. Vui lòng thử lại.");
@@ -169,11 +169,11 @@ const EditProductPopup = ({ product, onClose }) => {
       setPriceError(null);
       setHasError(false);
     }
-    let formattedValue = price.replace(/[^0-9]/g, '');
+    let formattedValue = price.replace(/[^0-9]/g, "");
     if (formattedValue) {
       formattedValue = Number(formattedValue).toLocaleString();
     }
-    
+
     setPrice(formattedValue);
   };
 
@@ -242,7 +242,7 @@ const EditProductPopup = ({ product, onClose }) => {
   const handleImageDelete = (index) => {
     const updatedImages = images.filter((_, i) => i !== index);
     setImages(updatedImages);
-    console.log(updatedImages)
+    console.log(updatedImages);
   };
 
   const handleSubmit = async (e) => {
@@ -272,13 +272,13 @@ const EditProductPopup = ({ product, onClose }) => {
           const formData = new FormData();
           formData.append("file", image.file);
           formData.append("upload_preset", "eCommercePreset");
-  
+
           const response = await axios.post(
             `https://api.cloudinary.com/v1_1/dlihdjok9/image/upload`,
             formData,
             {
               headers: { "Content-Type": "multipart/form-data" },
-              withCredentials: ""
+              withCredentials: "",
             }
           );
           uploadedImages.push(response.data.secure_url);
@@ -307,13 +307,18 @@ const EditProductPopup = ({ product, onClose }) => {
         xuat_xu: origin,
         thuong_hieu: brand,
         mo_ta: description,
-        gia: parseInt(String(price).replace(/\./g, '').replace(/[^0-9]/g, ''),10),
+        gia: parseInt(
+          String(price)
+            .replace(/\./g, "")
+            .replace(/[^0-9]/g, ""),
+          10
+        ),
         url_thumbnail: uploadedImages[0],
         ten_danh_muc: category.value,
         mau_ma_san_phams: mau_ma_san_phams,
         hinh_anh_san_phams: uploadedImages,
       };
-      console.log(uploadedImages[0])
+      console.log(uploadedImages[0]);
       const response = await axios.put(
         `/edit-product/${product.id}`,
         updatedProduct

@@ -121,7 +121,7 @@ module.exports = { addAddress, updateAddress };
 //     Ngay_du_kien_giao DATE NOT NULL,
 //     Trang_thai NVARCHAR(100) NOT NULL CHECK (Trang_thai IN('Chờ xác nhận','Đang giao hàng','Đã giao thành công','Đã hủy')) DEFAULT 'Chờ xác nhận',
 //     Phi_giao_hang INT NOT NULL,
-//     Thoi_gian_giao_hang SMALLDATETIME,
+//     Thoi_gian_giao_thuc_te SMALLDATETIME,
 //     Ly_do_huy NVARCHAR(400),
 //     Sdt CHAR(10) NOT NULL,
 //     Ma_cua_hang BIGINT NOT NULL,

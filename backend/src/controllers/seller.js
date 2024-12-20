@@ -180,6 +180,23 @@ const confirmDelivery = async (req, res) => {
   const Ma_don_hang = req.params.id;
 
   try {
+    // Kiểm tra xem số lượng sản phẩm trong kho còn đủ không
+    const checkQuery = `
+    SELECT mms.So_luong_ton_kho, ctdh.So_luong
+    FROM Mau_ma_san_pham mms
+    JOIN Chi_tiet_don_hang ctdh ON mms.ID = ctdh.Mau_ma_sp
+    WHERE ctdh.Ma_don_hang = ${Ma_don_hang}`;
+
+    const checkResult = await sql.query(checkQuery);
+    for (let i = 0; i < checkResult.recordset.length; i++) {
+      const { So_luong_ton_kho, So_luong } = checkResult.recordset[i];
+      if (So_luong_ton_kho < So_luong) {
+        return res.status(400).json({
+          message: "Số lượng sản phẩm trong kho không đủ để giao hàng.",
+        });
+      }
+    }
+
     await sql.query(`
     UPDATE Don_hang
     SET Trang_thai = N'Đã giao thành công', Thoi_gian_giao_thuc_te = GETDATE()
@@ -229,7 +246,7 @@ const getStatus = async (req, res) => {
     `;
     const request = new sql.Request();
     request.input("Sdt", sql.Char, Sdt);
-    
+
     const result = await request.query(str);
     res.status(200).json(result.recordset);
   } catch (error) {
@@ -256,7 +273,7 @@ const salesSummary = async (req, res) => {
 
     switch (timeRange) {
       case "today":
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(),);
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         endDate = new Date(startDate.getTime() + 24 * 60 * 60 * 1000);
         break;
       case "last3Days":
@@ -381,11 +398,11 @@ const getCompletedOrders = async (req, res) => {
 
 const getProductRank = async (req, res) => {
   const Sdt = req.user.id; // Lấy số điện thoại người bán từ user đã đăng nhập
-  const filter = req.query.filter || 'revenue'; // Lọc theo doanh thu hoặc số lượng bán
+  const filter = req.query.filter || "revenue"; // Lọc theo doanh thu hoặc số lượng bán
   let query;
   try {
     // Truy vấn thông tin thứ hạng sản phẩm theo doanh thu hoặc số lượng bán
-    if (filter === 'revenue') {
+    if (filter === "revenue") {
       query = `
       SELECT 
     sp.Ma_san_pham,
@@ -408,8 +425,7 @@ const getProductRank = async (req, res) => {
     ORDER BY 
         Doanh_thu DESC;
     `;
-    }
-    else{
+    } else {
       query = `
       SELECT 
     sp.Ma_san_pham,
@@ -433,10 +449,10 @@ const getProductRank = async (req, res) => {
         So_luong_ban DESC;
     `;
     }
-    
+
     const request = new sql.Request();
     request.input("Sdt", sql.Char, Sdt);
-    
+
     const result = await request.query(query);
     console.log(result.recordset);
     res.status(200).json(result.recordset);
@@ -511,9 +527,11 @@ const getOutOfStockProducts = async (req, res) => {
     `;
     const request = new sql.Request();
     request.input("Sdt", sql.Char, Sdt);
-    
+
     const result = await request.query(str);
-    res.status(200).json({ outOfStockCount: result.recordset[0].out_of_stock_count });
+    res
+      .status(200)
+      .json({ outOfStockCount: result.recordset[0].out_of_stock_count });
   } catch (error) {
     console.error("Lỗi khi lấy thông tin sản phẩm hết hàng:", error);
     res.status(500).json({
@@ -522,7 +540,6 @@ const getOutOfStockProducts = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   signUpSeller,
@@ -536,7 +553,7 @@ module.exports = {
   getCompletedOrders,
   getProductRank,
   getRatings,
-  getOutOfStockProducts
+  getOutOfStockProducts,
 };
 
 // CREATE DATABASE eCommerce;
@@ -621,7 +638,7 @@ module.exports = {
 //     Ngay_du_kien_giao DATE NOT NULL,
 //     Trang_thai NVARCHAR(100) NOT NULL CHECK (Trang_thai IN('Chờ xác nhận','Đang giao hàng','Đã giao thành công','Đã hủy')) DEFAULT 'Chờ xác nhận',
 //     Phi_giao_hang INT NOT NULL,
-//     Thoi_gian_giao_hang SMALLDATETIME,
+//     Thoi_gian_giao_thuc_te SMALLDATETIME,
 //     Ly_do_huy NVARCHAR(400),
 //     Sdt CHAR(10) NOT NULL,
 //     Ma_cua_hang BIGINT NOT NULL,

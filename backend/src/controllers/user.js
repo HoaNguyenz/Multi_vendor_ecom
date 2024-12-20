@@ -167,7 +167,7 @@ const getCart = async (req, res) => {
         FROM Chi_tiet_Gio_hang AS ctgh
         JOIN Mau_ma_san_pham AS mm ON ctgh.Mau_ma_sp = mm.ID
         JOIN San_pham AS sp ON mm.Ma_san_pham = sp.Ma_san_pham
-        WHERE ctgh.Sdt = ${sdt}
+        WHERE ctgh.Sdt = ${sdt} AND sp.Ma_cua_hang != -1
       `;
 
     res.status(200).json(result.recordset);
@@ -274,6 +274,21 @@ const createOrder = async (req, res) => {
   const soNgay = 3; // Thời gian giao hàng dự kiến (sau 3 ngày)
 
   try {
+    // Kiểm tra số lượng sản phẩm trong giỏ hàng coi có đủ hàng không
+    for (let i = 0; i < chi_tiet_don_hang.length; i++) {
+      const mau_ma_sp = chi_tiet_don_hang[i].mau_ma_sp;
+      const so_luong = chi_tiet_don_hang[i].so_luong;
+      const result = await sql.query(`
+          SELECT So_luong_ton_kho
+          FROM Mau_ma_san_pham
+          WHERE ID = ${mau_ma_sp}
+        `);
+      const ton_kho = result.recordset[0].So_luong_ton_kho;
+      if (so_luong > ton_kho) {
+        throw new Error("Số lượng sản phẩm trong kho không đủ.");
+      }
+    }
+
     // Tách các sản phẩm theo mã cửa hàng
     const groupedByStore = chi_tiet_don_hang.reduce((acc, item) => {
       const storeId = item.ma_cua_hang;
@@ -838,7 +853,7 @@ module.exports = {
 //     Ngay_du_kien_giao DATE NOT NULL,
 //     Trang_thai NVARCHAR(100) NOT NULL CHECK (Trang_thai IN('Chờ xác nhận','Đang giao hàng','Đã giao thành công','Đã hủy')) DEFAULT 'Chờ xác nhận',
 //     Phi_giao_hang INT NOT NULL,
-//     Thoi_gian_giao_hang SMALLDATETIME,
+//     Thoi_gian_giao_thuc_te SMALLDATETIME,
 //     Ly_do_huy NVARCHAR(400),
 //     Sdt CHAR(10) NOT NULL,
 //     Ma_cua_hang BIGINT NOT NULL,

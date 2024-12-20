@@ -82,7 +82,7 @@ CREATE TABLE Don_hang (
 	CHECK (Trang_thai IN(N'Chờ xác nhận',N'Đang giao hàng',N'Đã giao thành công',N'Đã hủy'))
 	DEFAULT N'Chờ xác nhận',
     Phi_giao_hang INT NOT NULL,
-    Thoi_gian_giao_hang SMALLDATETIME,
+    Thoi_gian_giao_thuc_te SMALLDATETIME,
     Ly_do_huy NVARCHAR(400),
     Sdt CHAR(10) NOT NULL,
     Ma_cua_hang BIGINT NOT NULL,
